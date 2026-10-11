@@ -9,6 +9,7 @@ export type RoleType =
 export type ClaimStatus =
   | 'SUBMITTED'
   | 'UNDER_REVIEW'
+  | 'PENDING_SUPERVISOR_REVIEW'
   | 'ADDITIONAL_INFO_REQUIRED'
   | 'APPROVED'
   | 'REJECTED'
@@ -32,6 +33,7 @@ export interface Insurer {
   description: string;
   contactEmail?: string;
   contactPhone?: string;
+  highValueThreshold?: number;
   active: boolean;
   createdAt: string;
 }
@@ -77,6 +79,26 @@ export interface Claim {
   incidentFingerprint: string;
   duplicateSuspected: boolean;
   duplicateReason?: string | null;
+  highValue?: boolean;
+  highValueThreshold?: number;
+  coverageLimit?: number;
+  deductible?: number;
+  suggestedPayoutAmount?: number;
+  eligible?: boolean;
+  officerRecommendation?: 'APPROVE' | 'REJECT' | null;
+  officerRecommendationJustification?: string | null;
+  officerRecommendedAt?: string | null;
+  officerId?: string | null;
+  supervisorDecision?: 'APPROVED' | 'REJECTED' | null;
+  supervisorDecisionJustification?: string | null;
+  supervisorDecidedAt?: string | null;
+  supervisorId?: string | null;
+  adminProcessingStatus?: string | null;
+  adminNotes?: string | null;
+  settlementReference?: string | null;
+  adminProcessedAt?: string | null;
+  adminId?: string | null;
+  policyRulesSnapshot?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -150,6 +172,9 @@ export interface HashChainVerificationResult {
   genesisHash: string;
   latestHash: string;
   verificationTimestamp: string;
+  failureCategory?: string | null;
+  expectedHash?: string | null;
+  observedHash?: string | null;
 }
 
 export interface InsurerMetrics {
@@ -162,6 +187,12 @@ export interface InsurerMetrics {
   approvedClaims: number;
   rejectedClaims: number;
   paidClaims: number;
+  pendingOfficerReviews: number;
+  pendingSupervisorDecisions: number;
+  highValuePendingClaims: number;
+  approvedAwaitingAdmin: number;
+  refusedViolationsCount: number;
+  highValueThreshold: number;
   totalRequestedAmount: number;
   totalApprovedAmount: number;
 }

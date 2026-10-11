@@ -27,6 +27,9 @@ public class Insurer {
     @Column(name = "contact_phone", length = 50)
     private String contactPhone;
 
+    @Column(name = "high_value_threshold", precision = 14, scale = 2)
+    private java.math.BigDecimal highValueThreshold = new java.math.BigDecimal("500000.00");
+
     @Column(nullable = false)
     private boolean active = true;
 
@@ -74,6 +77,9 @@ public class Insurer {
 
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+
+    public java.math.BigDecimal getHighValueThreshold() { return highValueThreshold; }
+    public void setHighValueThreshold(java.math.BigDecimal highValueThreshold) { this.highValueThreshold = highValueThreshold; }
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }

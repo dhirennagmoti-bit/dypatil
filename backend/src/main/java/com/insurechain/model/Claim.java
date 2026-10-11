@@ -63,6 +63,48 @@ public class Claim {
     @Column(name = "duplicate_reason", columnDefinition = "TEXT")
     private String duplicateReason;
 
+    @Column(name = "officer_recommendation", length = 50)
+    private String officerRecommendation;
+
+    @Column(name = "officer_recommendation_justification", columnDefinition = "TEXT")
+    private String officerRecommendationJustification;
+
+    @Column(name = "officer_recommended_at")
+    private Instant officerRecommendedAt;
+
+    @Column(name = "officer_id")
+    private UUID officerId;
+
+    @Column(name = "supervisor_decision", length = 50)
+    private String supervisorDecision;
+
+    @Column(name = "supervisor_decision_justification", columnDefinition = "TEXT")
+    private String supervisorDecisionJustification;
+
+    @Column(name = "supervisor_decided_at")
+    private Instant supervisorDecidedAt;
+
+    @Column(name = "supervisor_id")
+    private UUID supervisorId;
+
+    @Column(name = "admin_processing_status", length = 50)
+    private String adminProcessingStatus = "PENDING";
+
+    @Column(name = "admin_notes", columnDefinition = "TEXT")
+    private String adminNotes;
+
+    @Column(name = "settlement_reference", length = 100)
+    private String settlementReference;
+
+    @Column(name = "admin_processed_at")
+    private Instant adminProcessedAt;
+
+    @Column(name = "admin_id")
+    private UUID adminId;
+
+    @Column(name = "policy_rules_snapshot", columnDefinition = "TEXT")
+    private String policyRulesSnapshot;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
@@ -126,6 +168,48 @@ public class Claim {
 
     public String getDuplicateReason() { return duplicateReason; }
     public void setDuplicateReason(String duplicateReason) { this.duplicateReason = duplicateReason; }
+
+    public String getOfficerRecommendation() { return officerRecommendation; }
+    public void setOfficerRecommendation(String officerRecommendation) { this.officerRecommendation = officerRecommendation; }
+
+    public String getOfficerRecommendationJustification() { return officerRecommendationJustification; }
+    public void setOfficerRecommendationJustification(String officerRecommendationJustification) { this.officerRecommendationJustification = officerRecommendationJustification; }
+
+    public Instant getOfficerRecommendedAt() { return officerRecommendedAt; }
+    public void setOfficerRecommendedAt(Instant officerRecommendedAt) { this.officerRecommendedAt = officerRecommendedAt; }
+
+    public UUID getOfficerId() { return officerId; }
+    public void setOfficerId(UUID officerId) { this.officerId = officerId; }
+
+    public String getSupervisorDecision() { return supervisorDecision; }
+    public void setSupervisorDecision(String supervisorDecision) { this.supervisorDecision = supervisorDecision; }
+
+    public String getSupervisorDecisionJustification() { return supervisorDecisionJustification; }
+    public void setSupervisorDecisionJustification(String supervisorDecisionJustification) { this.supervisorDecisionJustification = supervisorDecisionJustification; }
+
+    public Instant getSupervisorDecidedAt() { return supervisorDecidedAt; }
+    public void setSupervisorDecidedAt(Instant supervisorDecidedAt) { this.supervisorDecidedAt = supervisorDecidedAt; }
+
+    public UUID getSupervisorId() { return supervisorId; }
+    public void setSupervisorId(UUID supervisorId) { this.supervisorId = supervisorId; }
+
+    public String getAdminProcessingStatus() { return adminProcessingStatus; }
+    public void setAdminProcessingStatus(String adminProcessingStatus) { this.adminProcessingStatus = adminProcessingStatus; }
+
+    public String getAdminNotes() { return adminNotes; }
+    public void setAdminNotes(String adminNotes) { this.adminNotes = adminNotes; }
+
+    public String getSettlementReference() { return settlementReference; }
+    public void setSettlementReference(String settlementReference) { this.settlementReference = settlementReference; }
+
+    public Instant getAdminProcessedAt() { return adminProcessedAt; }
+    public void setAdminProcessedAt(Instant adminProcessedAt) { this.adminProcessedAt = adminProcessedAt; }
+
+    public UUID getAdminId() { return adminId; }
+    public void setAdminId(UUID adminId) { this.adminId = adminId; }
+
+    public String getPolicyRulesSnapshot() { return policyRulesSnapshot; }
+    public void setPolicyRulesSnapshot(String policyRulesSnapshot) { this.policyRulesSnapshot = policyRulesSnapshot; }
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }

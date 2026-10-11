@@ -17,6 +17,10 @@ public class WorkflowTransitionRequest {
 
     private String notes;
 
+    private String officerRecommendation;
+
+    private String settlementReference;
+
     public WorkflowTransitionRequest() {}
 
     public ClaimStatus getTargetStatus() { return targetStatus; }
@@ -30,4 +34,10 @@ public class WorkflowTransitionRequest {
 
     public String getNotes() { return notes; }
     public void setNotes(String notes) { this.notes = notes; }
+
+    public String getOfficerRecommendation() { return officerRecommendation; }
+    public void setOfficerRecommendation(String officerRecommendation) { this.officerRecommendation = officerRecommendation; }
+
+    public String getSettlementReference() { return settlementReference; }
+    public void setSettlementReference(String settlementReference) { this.settlementReference = settlementReference; }
 }

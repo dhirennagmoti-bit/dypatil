@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.security.SecureRandom;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -203,11 +204,12 @@ public class ClaimService {
         ClaimStatus targetStatus = request.getTargetStatus();
 
         try {
-            validateStateTransition(claim, currentStatus, targetStatus, role);
+            validateStateTransition(claim, currentStatus, targetStatus, role, request);
         } catch (InvalidWorkflowTransitionException ex) {
             AuditAction attemptedAction = targetStatus == ClaimStatus.APPROVED ? AuditAction.CLAIM_APPROVED
                     : targetStatus == ClaimStatus.PAID ? AuditAction.PAYMENT_ISSUED
                     : targetStatus == ClaimStatus.REJECTED ? AuditAction.CLAIM_REJECTED
+                    : targetStatus == ClaimStatus.PENDING_SUPERVISOR_REVIEW ? AuditAction.OFFICER_RECOMMENDATION_SUBMITTED
                     : AuditAction.STATUS_CHANGE;
 
             auditChainService.logRefusedAction(
@@ -223,25 +225,54 @@ public class ClaimService {
             throw ex;
         }
 
-        // 3. Apply Transition
+        // 3. Apply Transition and Record Role Responsibilities
         ClaimStatus previousStatus = currentStatus;
         claim.setStatus(targetStatus);
 
         AuditAction auditAction = AuditAction.STATUS_CHANGE;
 
-        if (targetStatus == ClaimStatus.APPROVED) {
+        if (targetStatus == ClaimStatus.PENDING_SUPERVISOR_REVIEW) {
+            // Claims Officer recommendation recorded
+            claim.setOfficerRecommendation(request.getOfficerRecommendation() != null ? request.getOfficerRecommendation().toUpperCase() : "APPROVE");
+            claim.setOfficerRecommendationJustification(request.getDecisionReason());
+            claim.setOfficerRecommendedAt(Instant.now());
+            claim.setOfficerId(currentUser.getId());
+            auditAction = AuditAction.OFFICER_RECOMMENDATION_SUBMITTED;
+        } else if (targetStatus == ClaimStatus.APPROVED) {
+            // Supervisor Approval
             BigDecimal approvedAmount = request.getApprovedAmount();
             if (approvedAmount == null || approvedAmount.compareTo(BigDecimal.ZERO) <= 0) {
-                // If not provided in request, default to suggested payout from deterministic evaluation
                 Optional<EligibilityEvaluation> evalOpt = eligibilityEvaluationRepository.findByClaimId(claimId);
                 approvedAmount = evalOpt.map(EligibilityEvaluation::getSuggestedPayoutAmount).orElse(claim.getRequestedAmount());
             }
             claim.setApprovedAmount(approvedAmount);
+            claim.setSupervisorDecision("APPROVED");
+            claim.setSupervisorDecisionJustification(request.getDecisionReason());
+            claim.setSupervisorDecidedAt(Instant.now());
+            claim.setSupervisorId(currentUser.getId());
+            claim.setAdminProcessingStatus("PENDING");
             auditAction = AuditAction.CLAIM_APPROVED;
         } else if (targetStatus == ClaimStatus.REJECTED) {
+            // Rejection (Supervisor / Admin)
             claim.setApprovedAmount(BigDecimal.ZERO);
+            claim.setSupervisorDecision("REJECTED");
+            claim.setSupervisorDecisionJustification(request.getDecisionReason());
+            claim.setSupervisorDecidedAt(Instant.now());
+            claim.setSupervisorId(currentUser.getId());
             auditAction = AuditAction.CLAIM_REJECTED;
         } else if (targetStatus == ClaimStatus.PAID) {
+            // Insurer Admin Settlement Execution
+            if (request.getSettlementReference() != null && !request.getSettlementReference().isBlank()) {
+                claim.setSettlementReference(request.getSettlementReference().trim());
+            } else if (claim.getSettlementReference() == null) {
+                claim.setSettlementReference("SETTLE-" + System.currentTimeMillis());
+            }
+            claim.setAdminProcessingStatus("SETTLED");
+            claim.setAdminProcessedAt(Instant.now());
+            claim.setAdminId(currentUser.getId());
+            if (request.getNotes() != null) {
+                claim.setAdminNotes(request.getNotes());
+            }
             auditAction = AuditAction.PAYMENT_ISSUED;
         } else if (targetStatus == ClaimStatus.ADDITIONAL_INFO_REQUIRED) {
             auditAction = AuditAction.ADDITIONAL_INFO_REQUESTED;
@@ -266,15 +297,18 @@ public class ClaimService {
         return getClaimDetail(claimId, currentUser);
     }
 
-    private void validateStateTransition(Claim claim, ClaimStatus current, ClaimStatus target, RoleType role) {
+    private void validateStateTransition(Claim claim, ClaimStatus current, ClaimStatus target, RoleType role, WorkflowTransitionRequest request) {
         if (current == target) {
+            // Allow admin processing update while in APPROVED state
+            if (current == ClaimStatus.APPROVED && (role == RoleType.INSURER_ADMIN || role == RoleType.PLATFORM_ADMIN)) {
+                return;
+            }
             throw new InvalidWorkflowTransitionException("Claim is already in status: " + current);
         }
 
         // Feature 2: Anti-Duplicate Progression Blocker
-        // The problem specifically says the same incident under the same policy must not be paid twice
-        if (target == ClaimStatus.APPROVED || target == ClaimStatus.PAID) {
-            if (claim.isDuplicateSuspected()) {
+        if (target == ClaimStatus.APPROVED || target == ClaimStatus.PAID || target == ClaimStatus.PENDING_SUPERVISOR_REVIEW) {
+            if (claim.isDuplicateSuspected() && (target == ClaimStatus.APPROVED || target == ClaimStatus.PAID)) {
                 throw new InvalidWorkflowTransitionException(
                         String.format("DUPLICATE INCIDENT BLOCKED: Claim '%s' is flagged as a duplicate collision (%s). Prohibited from progressing to %s by IRDAI anti-double-dipping rules.",
                                 claim.getClaimReference(),
@@ -288,9 +322,19 @@ public class ClaimService {
                     if (other.getStatus() == ClaimStatus.PAID || other.getStatus() == ClaimStatus.APPROVED) {
                         throw new InvalidWorkflowTransitionException(
                                 String.format("DUPLICATE INCIDENT BLOCKED: The same incident ('%s') under this policy has already been %s in claim '%s'. Duplicate payment is strictly prohibited.",
-                                        claim.getIncidentId(), other.getStatus(), other.getClaimReference()));
+                                         claim.getIncidentId(), other.getStatus(), other.getClaimReference()));
                     }
                 }
+            }
+        }
+
+        // Hard Eligibility Failure Blocker: Approval is prohibited if any hard deterministic rule failed
+        if (target == ClaimStatus.APPROVED) {
+            Optional<EligibilityEvaluation> evalOpt = eligibilityEvaluationRepository.findByClaimId(claim.getId());
+            if (evalOpt.isPresent() && !evalOpt.get().isEligible()) {
+                throw new InvalidWorkflowTransitionException(
+                        String.format("HARD ELIGIBILITY FAILURE: Cannot approve claim '%s'. Reason: %s. Supervisor cannot bypass hard eligibility rules.",
+                                claim.getClaimReference(), evalOpt.get().getPrimaryExplanation()));
             }
         }
 
@@ -309,7 +353,15 @@ public class ClaimService {
                 }
             }
             case UNDER_REVIEW -> {
-                if (target == ClaimStatus.APPROVED) {
+                if (target == ClaimStatus.PENDING_SUPERVISOR_REVIEW) {
+                    // Claims Officer records recommendation to supervisor
+                    if (role != RoleType.CLAIMS_OFFICER && role != RoleType.SUPERVISOR && role != RoleType.INSURER_ADMIN && role != RoleType.PLATFORM_ADMIN) {
+                        throw new InvalidWorkflowTransitionException("Only claims officers or supervisors may submit recommendations for supervisor decision.");
+                    }
+                    if (request.getOfficerRecommendation() == null || request.getOfficerRecommendation().trim().isEmpty()) {
+                        throw new InvalidWorkflowTransitionException("Mandatory officer recommendation (APPROVE or REJECT) is required to escalate to supervisor.");
+                    }
+                } else if (target == ClaimStatus.APPROVED) {
                     // Claims officer CANNOT approve claims! Only SUPERVISOR, INSURER_ADMIN, PLATFORM_ADMIN
                     if (role != RoleType.SUPERVISOR && role != RoleType.INSURER_ADMIN && role != RoleType.PLATFORM_ADMIN) {
                         throw new InvalidWorkflowTransitionException("UNAUTHORIZED APPROVAL: Claims officers cannot approve claims. Claim approval requires SUPERVISOR or INSURER_ADMIN role.");
@@ -323,14 +375,31 @@ public class ClaimService {
                         throw new InvalidWorkflowTransitionException("Only claims officers or supervisors can request additional information.");
                     }
                 } else {
-                    throw new InvalidWorkflowTransitionException("Invalid transition from UNDER_REVIEW to " + target + ". Allowed: APPROVED, REJECTED, ADDITIONAL_INFO_REQUIRED.");
+                    throw new InvalidWorkflowTransitionException("Invalid transition from UNDER_REVIEW to " + target + ". Allowed: PENDING_SUPERVISOR_REVIEW, APPROVED, REJECTED, ADDITIONAL_INFO_REQUIRED.");
+                }
+            }
+            case PENDING_SUPERVISOR_REVIEW -> {
+                if (target == ClaimStatus.APPROVED) {
+                    if (role != RoleType.SUPERVISOR && role != RoleType.INSURER_ADMIN && role != RoleType.PLATFORM_ADMIN) {
+                        throw new InvalidWorkflowTransitionException("UNAUTHORIZED APPROVAL: Only supervisors or admins may approve claims in supervisor queue. Claims officers are forbidden.");
+                    }
+                } else if (target == ClaimStatus.REJECTED) {
+                    if (role != RoleType.SUPERVISOR && role != RoleType.INSURER_ADMIN && role != RoleType.PLATFORM_ADMIN) {
+                        throw new InvalidWorkflowTransitionException("UNAUTHORIZED REJECTION: Only supervisors or admins may make final rejection decisions.");
+                    }
+                } else if (target == ClaimStatus.ADDITIONAL_INFO_REQUIRED) {
+                    if (role != RoleType.SUPERVISOR && role != RoleType.INSURER_ADMIN && role != RoleType.PLATFORM_ADMIN) {
+                        throw new InvalidWorkflowTransitionException("Only supervisors or admins may request additional information during supervisor review.");
+                    }
+                } else {
+                    throw new InvalidWorkflowTransitionException("Invalid transition from PENDING_SUPERVISOR_REVIEW to " + target + ". Allowed: APPROVED, REJECTED, ADDITIONAL_INFO_REQUIRED.");
                 }
             }
             case ADDITIONAL_INFO_REQUIRED -> {
                 if (target == ClaimStatus.UNDER_REVIEW) {
                     // Allowed for policyholder or officer to return to review
                 } else if (target == ClaimStatus.REJECTED) {
-                    if (role != RoleType.SUPERVISOR && role != RoleType.INSURER_ADMIN) {
+                    if (role != RoleType.SUPERVISOR && role != RoleType.INSURER_ADMIN && role != RoleType.PLATFORM_ADMIN) {
                         throw new InvalidWorkflowTransitionException("Only supervisors may reject a claim pending additional info.");
                     }
                 } else {
@@ -346,8 +415,11 @@ public class ClaimService {
                     throw new InvalidWorkflowTransitionException("Claims in APPROVED state can only transition to PAID.");
                 }
             }
-            case REJECTED, PAID -> {
-                throw new InvalidWorkflowTransitionException("Final state reached (" + current + "). No further transitions permitted.");
+            case REJECTED -> {
+                throw new InvalidWorkflowTransitionException("Terminal state reached (REJECTED). Admin cannot convert a rejected claim to approved or paid.");
+            }
+            case PAID -> {
+                throw new InvalidWorkflowTransitionException("Final state reached (PAID). Claim has already been paid and settled. No further transitions permitted.");
             }
         }
     }
@@ -393,6 +465,19 @@ public class ClaimService {
                 .collect(Collectors.toList());
 
         ClaimDto claimDto = ClaimDto.fromEntity(claim, policy != null ? policy.getTitle() : "", policy != null ? policy.getPolicyNumber() : "", policyholderName, insurerName);
+        Insurer ins = insurerRepository.findById(claim.getInsurerId()).orElse(null);
+        BigDecimal threshold = ins != null && ins.getHighValueThreshold() != null ? ins.getHighValueThreshold() : new BigDecimal("500000.00");
+        claimDto.setHighValueThreshold(threshold);
+        claimDto.setHighValue(claim.getRequestedAmount() != null && claim.getRequestedAmount().compareTo(threshold) >= 0);
+        if (policy != null) {
+            claimDto.setCoverageLimit(policy.getCoverageLimit());
+            claimDto.setDeductible(policy.getDeductible());
+        }
+        if (evalOpt.isPresent()) {
+            claimDto.setSuggestedPayoutAmount(evalOpt.get().getSuggestedPayoutAmount());
+            claimDto.setEligible(evalOpt.get().isEligible());
+        }
+
         PolicyDto policyDto = policy != null ? PolicyDto.fromEntity(policy, insurerName) : null;
         List<ClaimEvidenceDto> evidenceDtos = evidences.stream().map(ClaimEvidenceDto::fromEntity).collect(Collectors.toList());
 
@@ -417,19 +502,37 @@ public class ClaimService {
             claims = claimRepository.findAll();
         }
 
-        Map<UUID, String> insurerNames = insurerRepository.findAll().stream().collect(Collectors.toMap(Insurer::getId, Insurer::getName, (a, b) -> a));
-        Map<UUID, String> userNames = userRepository.findAll().stream().collect(Collectors.toMap(User::getId, User::getFullName, (a, b) -> a));
+        Map<UUID, Insurer> insurers = insurerRepository.findAll().stream().collect(Collectors.toMap(Insurer::getId, i -> i, (a, b) -> a));
+        Map<UUID, User> users = userRepository.findAll().stream().collect(Collectors.toMap(User::getId, u -> u, (a, b) -> a));
         Map<UUID, Policy> policies = policyRepository.findAll().stream().collect(Collectors.toMap(Policy::getId, p -> p, (a, b) -> a));
+        Map<UUID, EligibilityEvaluation> evaluations = eligibilityEvaluationRepository.findAll().stream().collect(Collectors.toMap(EligibilityEvaluation::getClaimId, e -> e, (a, b) -> a));
 
         return claims.stream().map(c -> {
             Policy p = policies.get(c.getPolicyId());
-            return ClaimDto.fromEntity(
+            Insurer ins = insurers.get(c.getInsurerId());
+            User u = users.get(c.getPolicyholderId());
+            EligibilityEvaluation eval = evaluations.get(c.getId());
+            BigDecimal threshold = ins != null && ins.getHighValueThreshold() != null ? ins.getHighValueThreshold() : new BigDecimal("500000.00");
+            boolean isHigh = c.getRequestedAmount() != null && c.getRequestedAmount().compareTo(threshold) >= 0;
+
+            ClaimDto dto = ClaimDto.fromEntity(
                     c,
                     p != null ? p.getTitle() : "Policy",
                     p != null ? p.getPolicyNumber() : "",
-                    userNames.getOrDefault(c.getPolicyholderId(), "Policyholder"),
-                    insurerNames.getOrDefault(c.getInsurerId(), "Insurer")
+                    u != null ? u.getFullName() : "Policyholder",
+                    ins != null ? ins.getName() : "Insurer"
             );
+            dto.setHighValue(isHigh);
+            dto.setHighValueThreshold(threshold);
+            if (p != null) {
+                dto.setCoverageLimit(p.getCoverageLimit());
+                dto.setDeductible(p.getDeductible());
+            }
+            if (eval != null) {
+                dto.setSuggestedPayoutAmount(eval.getSuggestedPayoutAmount());
+                dto.setEligible(eval.isEligible());
+            }
+            return dto;
         }).collect(Collectors.toList());
     }
 
@@ -437,6 +540,17 @@ public class ClaimService {
                                                 List<ClaimEvidence> evidences, EligibilityResultDto eligibility,
                                                 AiExtractionDto aiExtraction) {
         ClaimDto claimDto = ClaimDto.fromEntity(claim, policy.getTitle(), policy.getPolicyNumber(), policyholderName, insurerName);
+        Insurer ins = insurerRepository.findById(claim.getInsurerId()).orElse(null);
+        BigDecimal threshold = ins != null && ins.getHighValueThreshold() != null ? ins.getHighValueThreshold() : new BigDecimal("500000.00");
+        claimDto.setHighValueThreshold(threshold);
+        claimDto.setHighValue(claim.getRequestedAmount() != null && claim.getRequestedAmount().compareTo(threshold) >= 0);
+        claimDto.setCoverageLimit(policy.getCoverageLimit());
+        claimDto.setDeductible(policy.getDeductible());
+        if (eligibility != null) {
+            claimDto.setSuggestedPayoutAmount(eligibility.getSuggestedPayoutAmount());
+            claimDto.setEligible(eligibility.isEligible());
+        }
+
         PolicyDto policyDto = PolicyDto.fromEntity(policy, insurerName);
         List<ClaimEvidenceDto> evidenceDtos = evidences.stream().map(ClaimEvidenceDto::fromEntity).collect(Collectors.toList());
 

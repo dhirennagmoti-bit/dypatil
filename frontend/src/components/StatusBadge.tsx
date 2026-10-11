@@ -23,6 +23,12 @@ const statusConfig: Record<
     dotClass: 'bg-amber-500',
     icon: AlertCircle,
   },
+  PENDING_SUPERVISOR_REVIEW: {
+    label: 'Supervisor Queue',
+    badgeClass: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    dotClass: 'bg-indigo-500',
+    icon: Clock,
+  },
   ADDITIONAL_INFO_REQUIRED: {
     label: 'Info Requested',
     badgeClass: 'bg-purple-50 text-purple-700 border-purple-200',

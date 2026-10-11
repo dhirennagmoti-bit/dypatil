@@ -70,8 +70,10 @@ public class AuthService {
         user.setEmail(request.getEmail());
         user.setPasswordHash(passwordEncoder.encode(request.getPassword()));
         user.setFullName(request.getFullName());
-        user.setRole(request.getRole() != null ? request.getRole() : RoleType.POLICYHOLDER);
-        user.setInsurerId(request.getInsurerId());
+        // Enforce privilege protection: Public registration is strictly restricted to POLICYHOLDER
+        // Privileged roles (SUPERVISOR, CLAIMS_OFFICER, INSURER_ADMIN, AUDITOR) require authorized admin assignment
+        user.setRole(RoleType.POLICYHOLDER);
+        user.setInsurerId(null);
         user.setPhone(request.getPhone());
         user.setActive(true);
 

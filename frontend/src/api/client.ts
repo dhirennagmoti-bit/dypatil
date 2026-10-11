@@ -10,7 +10,9 @@ import {
   AiExtraction,
 } from '../types';
 
-const API_BASE = '/api';
+// Supports VITE_API_URL in production (e.g. Render backend) or falls back to /api for Vite proxy
+const ENV_URL = (import.meta.env.VITE_API_URL || import.meta.env.VITE_API_BASE_URL || '').replace(/\/$/, '');
+const API_BASE = ENV_URL ? `${ENV_URL}/api` : '/api';
 
 function getAuthToken(): string | null {
   return localStorage.getItem('insurechain_token');
@@ -87,6 +89,11 @@ export const api = {
         method: 'POST',
         body: JSON.stringify(data),
       }),
+    update: (id: string, data: Partial<Policy>) =>
+      request<Policy>(`/policies/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }),
   },
 
   claims: {
@@ -113,6 +120,8 @@ export const api = {
         approvedAmount?: number;
         decisionReason: string;
         notes?: string;
+        officerRecommendation?: string;
+        settlementReference?: string;
       }
     ) =>
       request<ClaimDetailResponse>(`/claims/${id}/transition`, {
@@ -137,6 +146,16 @@ export const api = {
     getById: (id: string) => request<Insurer>(`/insurers/${id}`),
     getMetrics: (id: string) => request<InsurerMetrics>(`/insurers/${id}/metrics`),
     getUsers: (id: string) => request<User[]>(`/insurers/${id}/users`),
+    updateThreshold: (id: string, highValueThreshold: number, changeReason?: string) =>
+      request<Insurer>(`/insurers/${id}/threshold`, {
+        method: 'PATCH',
+        body: JSON.stringify({ highValueThreshold, changeReason }),
+      }),
+    updateUserRole: (insurerId: string, userId: string, role: string, justification?: string) =>
+      request<User>(`/insurers/${insurerId}/users/${userId}/role`, {
+        method: 'PUT',
+        body: JSON.stringify({ role, justification }),
+      }),
   },
 
   ai: {

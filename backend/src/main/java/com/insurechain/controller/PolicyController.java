@@ -46,12 +46,23 @@ public class PolicyController {
     @PreAuthorize("hasAnyRole('INSURER_ADMIN', 'PLATFORM_ADMIN')")
     public ResponseEntity<PolicyDto> createPolicy(
             @AuthenticationPrincipal UserDetailsImpl userPrincipal,
-            @Valid @RequestBody CreatePolicyRequest request) {
+            @Valid @RequestBody CreatePolicyRequest request,
+            jakarta.servlet.http.HttpServletRequest servletRequest) {
         UUID insurerId = userPrincipal.getInsurerId() != null ? userPrincipal.getInsurerId() : request.getInsurerId();
         if (insurerId == null) {
             throw new IllegalArgumentException("Insurer ID is required to create a policy.");
         }
-        return ResponseEntity.ok(policyService.createPolicy(insurerId, request));
+        return ResponseEntity.ok(policyService.createPolicy(insurerId, request, userPrincipal, servletRequest.getRemoteAddr()));
+    }
+
+    @PutMapping("/{id}")
+    @PreAuthorize("hasAnyRole('INSURER_ADMIN', 'PLATFORM_ADMIN')")
+    public ResponseEntity<PolicyDto> updatePolicy(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal UserDetailsImpl userPrincipal,
+            @Valid @RequestBody CreatePolicyRequest request,
+            jakarta.servlet.http.HttpServletRequest servletRequest) {
+        return ResponseEntity.ok(policyService.updatePolicy(id, request, userPrincipal, servletRequest.getRemoteAddr()));
     }
 
     @PostMapping("/{id}/enroll")

@@ -129,17 +129,24 @@ export const Navbar: React.FC = () => {
                 </>
               )}
 
-              {user && (user.role === 'CLAIMS_OFFICER' || user.role === 'SUPERVISOR') && (
+              {user && user.role === 'CLAIMS_OFFICER' && (
                 <Link to="/officer/queue" className={navLinkClass('/officer/queue')}>
-                  <CheckSquare className="w-3.5 h-3.5" />
+                  <CheckSquare className="w-3.5 h-3.5 text-amber-600" />
                   Claims Queue
+                </Link>
+              )}
+
+              {user && user.role === 'SUPERVISOR' && (
+                <Link to="/supervisor/queue" className={navLinkClass('/supervisor/queue')}>
+                  <CheckSquare className="w-3.5 h-3.5 text-blue-600" />
+                  Supervisor Queue
                 </Link>
               )}
 
               {user && user.role === 'INSURER_ADMIN' && (
                 <Link to="/insurer/admin" className={navLinkClass('/insurer/admin')}>
                   <Building2 className="w-3.5 h-3.5" />
-                  Underwriting
+                  Insurer Hub
                 </Link>
               )}
 
@@ -338,7 +345,7 @@ export const Navbar: React.FC = () => {
               </>
             )}
 
-            {user && (user.role === 'CLAIMS_OFFICER' || user.role === 'SUPERVISOR') && (
+            {user && user.role === 'CLAIMS_OFFICER' && (
               <Link
                 to="/officer/queue"
                 onClick={() => setShowMobileNav(false)}
@@ -348,13 +355,23 @@ export const Navbar: React.FC = () => {
               </Link>
             )}
 
+            {user && user.role === 'SUPERVISOR' && (
+              <Link
+                to="/supervisor/queue"
+                onClick={() => setShowMobileNav(false)}
+                className="block px-3 py-2 text-xs font-semibold text-[#0F172A] rounded-lg hover:bg-slate-100"
+              >
+                Supervisor Queue
+              </Link>
+            )}
+
             {user && user.role === 'INSURER_ADMIN' && (
               <Link
                 to="/insurer/admin"
                 onClick={() => setShowMobileNav(false)}
                 className="block px-3 py-2 text-xs font-semibold text-[#0F172A] rounded-lg hover:bg-slate-100"
               >
-                Underwriting & Staff
+                Insurer Hub & Settlements
               </Link>
             )}
 

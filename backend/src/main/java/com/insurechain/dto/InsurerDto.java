@@ -12,6 +12,7 @@ public class InsurerDto {
     private String contactEmail;
     private String contactPhone;
     private boolean active;
+    private java.math.BigDecimal highValueThreshold;
     private Instant createdAt;
 
     public InsurerDto() {}
@@ -25,6 +26,7 @@ public class InsurerDto {
         dto.setContactEmail(insurer.getContactEmail());
         dto.setContactPhone(insurer.getContactPhone());
         dto.setActive(insurer.isActive());
+        dto.setHighValueThreshold(insurer.getHighValueThreshold());
         dto.setCreatedAt(insurer.getCreatedAt());
         return dto;
     }
@@ -49,6 +51,9 @@ public class InsurerDto {
 
     public boolean isActive() { return active; }
     public void setActive(boolean active) { this.active = active; }
+
+    public java.math.BigDecimal getHighValueThreshold() { return highValueThreshold; }
+    public void setHighValueThreshold(java.math.BigDecimal highValueThreshold) { this.highValueThreshold = highValueThreshold; }
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }

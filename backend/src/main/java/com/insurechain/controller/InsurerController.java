@@ -43,4 +43,27 @@ public class InsurerController {
     public ResponseEntity<List<UserDto>> getInsurerUsers(@PathVariable UUID id) {
         return ResponseEntity.ok(insurerService.getInsurerUsers(id));
     }
+
+    @PatchMapping("/{id}/threshold")
+    @PreAuthorize("hasAnyRole('INSURER_ADMIN', 'PLATFORM_ADMIN')")
+    public ResponseEntity<InsurerDto> updateThreshold(
+            @PathVariable UUID id,
+            @RequestBody java.util.Map<String, java.math.BigDecimal> body,
+            @AuthenticationPrincipal UserDetailsImpl userPrincipal,
+            jakarta.servlet.http.HttpServletRequest request) {
+        java.math.BigDecimal threshold = body.get("threshold");
+        return ResponseEntity.ok(insurerService.updateHighValueThreshold(id, threshold, userPrincipal, request.getRemoteAddr()));
+    }
+
+    @PutMapping("/{id}/users/{userId}/role")
+    @PreAuthorize("hasAnyRole('INSURER_ADMIN', 'PLATFORM_ADMIN')")
+    public ResponseEntity<UserDto> updateUserRole(
+            @PathVariable UUID id,
+            @PathVariable UUID userId,
+            @RequestBody java.util.Map<String, String> body,
+            @AuthenticationPrincipal UserDetailsImpl userPrincipal,
+            jakarta.servlet.http.HttpServletRequest request) {
+        com.insurechain.model.RoleType role = com.insurechain.model.RoleType.valueOf(body.get("role"));
+        return ResponseEntity.ok(insurerService.updateUserRole(id, userId, role, userPrincipal, request.getRemoteAddr()));
+    }
 }

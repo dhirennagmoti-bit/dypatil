@@ -29,6 +29,22 @@ public class ClaimDto {
     private String incidentFingerprint;
     private boolean duplicateSuspected;
     private String duplicateReason;
+    private String officerRecommendation;
+    private String officerRecommendationJustification;
+    private Instant officerRecommendedAt;
+    private String supervisorDecision;
+    private String supervisorDecisionJustification;
+    private Instant supervisorDecidedAt;
+    private String adminProcessingStatus;
+    private String adminNotes;
+    private String settlementReference;
+    private Instant adminProcessedAt;
+    private boolean highValue;
+    private BigDecimal highValueThreshold;
+    private BigDecimal coverageLimit;
+    private BigDecimal deductible;
+    private BigDecimal suggestedPayoutAmount;
+    private Boolean eligible;
     private Instant createdAt;
     private Instant updatedAt;
 
@@ -57,6 +73,16 @@ public class ClaimDto {
         dto.setIncidentFingerprint(claim.getIncidentFingerprint());
         dto.setDuplicateSuspected(claim.isDuplicateSuspected());
         dto.setDuplicateReason(claim.getDuplicateReason());
+        dto.setOfficerRecommendation(claim.getOfficerRecommendation());
+        dto.setOfficerRecommendationJustification(claim.getOfficerRecommendationJustification());
+        dto.setOfficerRecommendedAt(claim.getOfficerRecommendedAt());
+        dto.setSupervisorDecision(claim.getSupervisorDecision());
+        dto.setSupervisorDecisionJustification(claim.getSupervisorDecisionJustification());
+        dto.setSupervisorDecidedAt(claim.getSupervisorDecidedAt());
+        dto.setAdminProcessingStatus(claim.getAdminProcessingStatus());
+        dto.setAdminNotes(claim.getAdminNotes());
+        dto.setSettlementReference(claim.getSettlementReference());
+        dto.setAdminProcessedAt(claim.getAdminProcessedAt());
         dto.setCreatedAt(claim.getCreatedAt());
         dto.setUpdatedAt(claim.getUpdatedAt());
         return dto;
@@ -124,6 +150,54 @@ public class ClaimDto {
 
     public String getDuplicateReason() { return duplicateReason; }
     public void setDuplicateReason(String duplicateReason) { this.duplicateReason = duplicateReason; }
+
+    public String getOfficerRecommendation() { return officerRecommendation; }
+    public void setOfficerRecommendation(String officerRecommendation) { this.officerRecommendation = officerRecommendation; }
+
+    public String getOfficerRecommendationJustification() { return officerRecommendationJustification; }
+    public void setOfficerRecommendationJustification(String officerRecommendationJustification) { this.officerRecommendationJustification = officerRecommendationJustification; }
+
+    public Instant getOfficerRecommendedAt() { return officerRecommendedAt; }
+    public void setOfficerRecommendedAt(Instant officerRecommendedAt) { this.officerRecommendedAt = officerRecommendedAt; }
+
+    public String getSupervisorDecision() { return supervisorDecision; }
+    public void setSupervisorDecision(String supervisorDecision) { this.supervisorDecision = supervisorDecision; }
+
+    public String getSupervisorDecisionJustification() { return supervisorDecisionJustification; }
+    public void setSupervisorDecisionJustification(String supervisorDecisionJustification) { this.supervisorDecisionJustification = supervisorDecisionJustification; }
+
+    public Instant getSupervisorDecidedAt() { return supervisorDecidedAt; }
+    public void setSupervisorDecidedAt(Instant supervisorDecidedAt) { this.supervisorDecidedAt = supervisorDecidedAt; }
+
+    public String getAdminProcessingStatus() { return adminProcessingStatus; }
+    public void setAdminProcessingStatus(String adminProcessingStatus) { this.adminProcessingStatus = adminProcessingStatus; }
+
+    public String getAdminNotes() { return adminNotes; }
+    public void setAdminNotes(String adminNotes) { this.adminNotes = adminNotes; }
+
+    public String getSettlementReference() { return settlementReference; }
+    public void setSettlementReference(String settlementReference) { this.settlementReference = settlementReference; }
+
+    public Instant getAdminProcessedAt() { return adminProcessedAt; }
+    public void setAdminProcessedAt(Instant adminProcessedAt) { this.adminProcessedAt = adminProcessedAt; }
+
+    public boolean isHighValue() { return highValue; }
+    public void setHighValue(boolean highValue) { this.highValue = highValue; }
+
+    public BigDecimal getHighValueThreshold() { return highValueThreshold; }
+    public void setHighValueThreshold(BigDecimal highValueThreshold) { this.highValueThreshold = highValueThreshold; }
+
+    public BigDecimal getCoverageLimit() { return coverageLimit; }
+    public void setCoverageLimit(BigDecimal coverageLimit) { this.coverageLimit = coverageLimit; }
+
+    public BigDecimal getDeductible() { return deductible; }
+    public void setDeductible(BigDecimal deductible) { this.deductible = deductible; }
+
+    public BigDecimal getSuggestedPayoutAmount() { return suggestedPayoutAmount; }
+    public void setSuggestedPayoutAmount(BigDecimal suggestedPayoutAmount) { this.suggestedPayoutAmount = suggestedPayoutAmount; }
+
+    public Boolean getEligible() { return eligible; }
+    public void setEligible(Boolean eligible) { this.eligible = eligible; }
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }

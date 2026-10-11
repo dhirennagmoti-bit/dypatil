@@ -105,6 +105,22 @@ export function App() {
                     </ProtectedRoute>
                   }
                 />
+                <Route
+                  path="/supervisor/queue"
+                  element={
+                    <ProtectedRoute>
+                      <ClaimsQueuePage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/supervisor/claims/:id"
+                  element={
+                    <ProtectedRoute>
+                      <ClaimReviewDetailPage />
+                    </ProtectedRoute>
+                  }
+                />
 
                 {/* Insurer Administration Routes */}
                 <Route

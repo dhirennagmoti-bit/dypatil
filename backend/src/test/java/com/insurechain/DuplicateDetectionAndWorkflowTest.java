@@ -49,6 +49,12 @@ public class DuplicateDetectionAndWorkflowTest {
     private EligibilityEvaluationRepository eligibilityEvaluationRepository;
 
     @Mock
+    private AiExtractionResultRepository aiExtractionResultRepository;
+
+    @Mock
+    private WorkflowAuditLogRepository auditLogRepository;
+
+    @Mock
     private AuditChainService auditChainService;
 
     @Mock
@@ -64,8 +70,10 @@ public class DuplicateDetectionAndWorkflowTest {
     private UUID insurerId;
     private UUID officerUserId;
     private UUID supervisorUserId;
+    private UUID adminUserId;
     private UserDetailsImpl officerUser;
     private UserDetailsImpl supervisorUser;
+    private UserDetailsImpl adminUser;
     private Policy policy;
 
     @BeforeEach
@@ -74,6 +82,7 @@ public class DuplicateDetectionAndWorkflowTest {
         insurerId = UUID.randomUUID();
         officerUserId = UUID.randomUUID();
         supervisorUserId = UUID.randomUUID();
+        adminUserId = UUID.randomUUID();
 
         officerUser = new UserDetailsImpl(
                 officerUserId,
@@ -95,6 +104,17 @@ public class DuplicateDetectionAndWorkflowTest {
                 insurerId,
                 true,
                 org.springframework.security.core.authority.AuthorityUtils.createAuthorityList("ROLE_SUPERVISOR")
+        );
+
+        adminUser = new UserDetailsImpl(
+                adminUserId,
+                "admin@test.com",
+                "Password123!",
+                "Admin Rao",
+                RoleType.INSURER_ADMIN,
+                insurerId,
+                true,
+                org.springframework.security.core.authority.AuthorityUtils.createAuthorityList("ROLE_INSURER_ADMIN")
         );
 
         policy = new Policy();
@@ -248,6 +268,169 @@ public class DuplicateDetectionAndWorkflowTest {
                 eq("SUPERVISOR"),
                 eq(AuditAction.CLAIM_APPROVED),
                 contains("DUPLICATE INCIDENT BLOCKED"),
+                eq("127.0.0.1")
+        );
+    }
+
+    @Test
+    @DisplayName("Feature: Officer recommendation moves claim to PENDING_SUPERVISOR_REVIEW with recommendation recorded")
+    public void testOfficerRecommendationMovesClaimToPendingSupervisorReview() {
+        UUID claimId = UUID.randomUUID();
+        Claim claim = new Claim();
+        claim.setId(claimId);
+        claim.setClaimReference("CLM-301");
+        claim.setPolicyId(policyId);
+        claim.setInsurerId(insurerId);
+        claim.setStatus(ClaimStatus.UNDER_REVIEW);
+
+        when(claimRepository.findById(claimId)).thenReturn(Optional.of(claim));
+        when(policyRepository.findById(policyId)).thenReturn(Optional.of(policy));
+        when(claimRepository.save(any(Claim.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        WorkflowTransitionRequest request = new WorkflowTransitionRequest();
+        request.setTargetStatus(ClaimStatus.PENDING_SUPERVISOR_REVIEW);
+        request.setOfficerRecommendation("APPROVE");
+        request.setDecisionReason("Documents verified and incident within coverage terms");
+
+        claimService.transitionWorkflow(claimId, officerUser, request, "127.0.0.1");
+
+        assertEquals(ClaimStatus.PENDING_SUPERVISOR_REVIEW, claim.getStatus());
+        assertEquals("APPROVE", claim.getOfficerRecommendation());
+        assertEquals("Documents verified and incident within coverage terms", claim.getOfficerRecommendationJustification());
+        assertEquals(officerUserId, claim.getOfficerId());
+        assertNotNull(claim.getOfficerRecommendedAt());
+
+        verify(auditChainService, times(1)).logWorkflowEvent(
+                eq(claimId),
+                eq(insurerId),
+                eq(officerUserId),
+                eq("officer@test.com"),
+                eq("CLAIMS_OFFICER"),
+                eq(AuditAction.OFFICER_RECOMMENDATION_SUBMITTED),
+                eq("UNDER_REVIEW"),
+                eq("PENDING_SUPERVISOR_REVIEW"),
+                eq("Documents verified and incident within coverage terms"),
+                eq("127.0.0.1")
+        );
+    }
+
+    @Test
+    @DisplayName("Feature: Supervisor cannot approve a claim with hard eligibility failure (e.g. late filing or inactive)")
+    public void testSupervisorCannotApproveHardEligibilityFailure() {
+        UUID claimId = UUID.randomUUID();
+        Claim claim = new Claim();
+        claim.setId(claimId);
+        claim.setClaimReference("CLM-401");
+        claim.setPolicyId(policyId);
+        claim.setInsurerId(insurerId);
+        claim.setStatus(ClaimStatus.PENDING_SUPERVISOR_REVIEW);
+
+        when(claimRepository.findById(claimId)).thenReturn(Optional.of(claim));
+        when(policyRepository.findById(policyId)).thenReturn(Optional.of(policy));
+
+        // Mock eligibility evaluation with hard failure
+        EligibilityEvaluation eval = new EligibilityEvaluation();
+        eval.setEligible(false);
+        eval.setPrimaryExplanation("LATE_FILING: Incident filed 45 days after incident, exceeding 30-day window");
+        when(eligibilityEvaluationRepository.findByClaimId(claimId))
+                .thenReturn(Optional.of(eval));
+
+        WorkflowTransitionRequest request = new WorkflowTransitionRequest();
+        request.setTargetStatus(ClaimStatus.APPROVED);
+        request.setDecisionReason("Attempting to approve claim despite late filing");
+
+        InvalidWorkflowTransitionException ex = assertThrows(InvalidWorkflowTransitionException.class, () -> {
+            claimService.transitionWorkflow(claimId, supervisorUser, request, "127.0.0.1");
+        });
+
+        assertTrue(ex.getMessage().contains("HARD ELIGIBILITY FAILURE"));
+
+        verify(auditChainService, times(1)).logRefusedAction(
+                eq(claimId),
+                eq(insurerId),
+                eq(supervisorUserId),
+                eq("supervisor@test.com"),
+                eq("SUPERVISOR"),
+                eq(AuditAction.CLAIM_APPROVED),
+                contains("HARD ELIGIBILITY FAILURE"),
+                eq("127.0.0.1")
+        );
+    }
+
+    @Test
+    @DisplayName("Feature: Insurer Admin processes approved claim to PAID with settlement reference")
+    public void testAdminProcessesApprovedClaimToPaid() {
+        UUID claimId = UUID.randomUUID();
+        Claim claim = new Claim();
+        claim.setId(claimId);
+        claim.setClaimReference("CLM-501");
+        claim.setPolicyId(policyId);
+        claim.setInsurerId(insurerId);
+        claim.setStatus(ClaimStatus.APPROVED);
+
+        when(claimRepository.findById(claimId)).thenReturn(Optional.of(claim));
+        when(policyRepository.findById(policyId)).thenReturn(Optional.of(policy));
+        when(claimRepository.save(any(Claim.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        WorkflowTransitionRequest request = new WorkflowTransitionRequest();
+        request.setTargetStatus(ClaimStatus.PAID);
+        request.setSettlementReference("NEFT-20261011-98765");
+        request.setDecisionReason("Bank disbursement completed via NEFT batch 42");
+
+        claimService.transitionWorkflow(claimId, adminUser, request, "127.0.0.1");
+
+        assertEquals(ClaimStatus.PAID, claim.getStatus());
+        assertEquals("NEFT-20261011-98765", claim.getSettlementReference());
+        assertEquals("SETTLED", claim.getAdminProcessingStatus());
+        assertEquals(adminUserId, claim.getAdminId());
+        assertNotNull(claim.getAdminProcessedAt());
+
+        verify(auditChainService, times(1)).logWorkflowEvent(
+                eq(claimId),
+                eq(insurerId),
+                eq(adminUserId),
+                eq("admin@test.com"),
+                eq("INSURER_ADMIN"),
+                eq(AuditAction.PAYMENT_ISSUED),
+                eq("APPROVED"),
+                eq("PAID"),
+                eq("Bank disbursement completed via NEFT batch 42"),
+                eq("127.0.0.1")
+        );
+    }
+
+    @Test
+    @DisplayName("Feature: Insurer Admin cannot mark REJECTED claim as PAID")
+    public void testAdminCannotMarkRejectedClaimAsPaid() {
+        UUID claimId = UUID.randomUUID();
+        Claim claim = new Claim();
+        claim.setId(claimId);
+        claim.setClaimReference("CLM-601");
+        claim.setPolicyId(policyId);
+        claim.setInsurerId(insurerId);
+        claim.setStatus(ClaimStatus.REJECTED);
+
+        when(claimRepository.findById(claimId)).thenReturn(Optional.of(claim));
+        when(policyRepository.findById(policyId)).thenReturn(Optional.of(policy));
+
+        WorkflowTransitionRequest request = new WorkflowTransitionRequest();
+        request.setTargetStatus(ClaimStatus.PAID);
+        request.setDecisionReason("Attempting to pay a rejected claim");
+
+        InvalidWorkflowTransitionException ex = assertThrows(InvalidWorkflowTransitionException.class, () -> {
+            claimService.transitionWorkflow(claimId, adminUser, request, "127.0.0.1");
+        });
+
+        assertTrue(ex.getMessage().contains("Terminal state reached (REJECTED)"));
+
+        verify(auditChainService, times(1)).logRefusedAction(
+                eq(claimId),
+                eq(insurerId),
+                eq(adminUserId),
+                eq("admin@test.com"),
+                eq("INSURER_ADMIN"),
+                eq(AuditAction.PAYMENT_ISSUED),
+                contains("Terminal state reached (REJECTED)"),
                 eq("127.0.0.1")
         );
     }

@@ -8,12 +8,22 @@ public class HashChainVerificationResult {
     private String genesisHash;
     private String latestHash;
     private String verificationTimestamp;
+    private String failureCategory;
+    private String expectedHash;
+    private String observedHash;
 
     public HashChainVerificationResult() {}
 
     public HashChainVerificationResult(boolean valid, int totalRecordsChecked, Long brokenSequenceNumber,
                                        String errorMessage, String genesisHash, String latestHash,
                                        String verificationTimestamp) {
+        this(valid, totalRecordsChecked, brokenSequenceNumber, errorMessage, genesisHash, latestHash, verificationTimestamp, null, null, null);
+    }
+
+    public HashChainVerificationResult(boolean valid, int totalRecordsChecked, Long brokenSequenceNumber,
+                                       String errorMessage, String genesisHash, String latestHash,
+                                       String verificationTimestamp, String failureCategory,
+                                       String expectedHash, String observedHash) {
         this.valid = valid;
         this.totalRecordsChecked = totalRecordsChecked;
         this.brokenSequenceNumber = brokenSequenceNumber;
@@ -21,6 +31,9 @@ public class HashChainVerificationResult {
         this.genesisHash = genesisHash;
         this.latestHash = latestHash;
         this.verificationTimestamp = verificationTimestamp;
+        this.failureCategory = failureCategory;
+        this.expectedHash = expectedHash;
+        this.observedHash = observedHash;
     }
 
     public boolean isValid() { return valid; }
@@ -43,4 +56,13 @@ public class HashChainVerificationResult {
 
     public String getVerificationTimestamp() { return verificationTimestamp; }
     public void setVerificationTimestamp(String verificationTimestamp) { this.verificationTimestamp = verificationTimestamp; }
+
+    public String getFailureCategory() { return failureCategory; }
+    public void setFailureCategory(String failureCategory) { this.failureCategory = failureCategory; }
+
+    public String getExpectedHash() { return expectedHash; }
+    public void setExpectedHash(String expectedHash) { this.expectedHash = expectedHash; }
+
+    public String getObservedHash() { return observedHash; }
+    public void setObservedHash(String observedHash) { this.observedHash = observedHash; }
 }

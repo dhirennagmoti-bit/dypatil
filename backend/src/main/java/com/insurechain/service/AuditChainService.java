@@ -79,7 +79,7 @@ public class AuditChainService {
         List<WorkflowAuditLog> logs = auditLogRepository.findAllByOrderBySequenceNumberAsc();
 
         if (logs.isEmpty()) {
-            return new HashChainVerificationResult(true, 0, null, null, GENESIS_HASH, GENESIS_HASH, Instant.now().toString());
+            return new HashChainVerificationResult(true, 0, null, null, GENESIS_HASH, GENESIS_HASH, Instant.now().toString(), null, null, null);
         }
 
         String expectedPreviousHash = GENESIS_HASH;
@@ -88,14 +88,39 @@ public class AuditChainService {
         for (int i = 0; i < logs.size(); i++) {
             WorkflowAuditLog log = logs.get(i);
 
-            // 1. Verify link to previous block
+            // 1. Verify sequence ordering and continuity
+            if (i == 0) {
+                if (log.getSequenceNumber() != 1L) {
+                    String errMsg = String.format("GENESIS SEQUENCE INVALID: First entry has sequence #%d, expected #1.", log.getSequenceNumber());
+                    return new HashChainVerificationResult(false, 0, log.getSequenceNumber(), errMsg, GENESIS_HASH, latestHash,
+                            Instant.now().toString(), "SEQUENCE_GAP", "1", String.valueOf(log.getSequenceNumber()));
+                }
+            } else {
+                long prevSeq = logs.get(i - 1).getSequenceNumber();
+                if (log.getSequenceNumber() != prevSeq + 1) {
+                    String errMsg = String.format("SEQUENCE GAP DETECTED AT #%d: Missing block between sequence #%d and #%d.",
+                            log.getSequenceNumber(), prevSeq, log.getSequenceNumber());
+                    return new HashChainVerificationResult(false, i, log.getSequenceNumber(), errMsg, GENESIS_HASH, latestHash,
+                            Instant.now().toString(), "SEQUENCE_GAP", String.valueOf(prevSeq + 1), String.valueOf(log.getSequenceNumber()));
+                }
+            }
+
+            // 2. Verify link to previous block
             if (!log.getPreviousHash().equalsIgnoreCase(expectedPreviousHash)) {
                 String errMsg = String.format("BLOCKCHAIN BROKEN AT SEQUENCE #%d: Previous hash '%s' does not match expected parent hash '%s'. Direct database tampering detected!",
                         log.getSequenceNumber(), log.getPreviousHash(), expectedPreviousHash);
-                return new HashChainVerificationResult(false, i, log.getSequenceNumber(), errMsg, GENESIS_HASH, latestHash, Instant.now().toString());
+                return new HashChainVerificationResult(false, i, log.getSequenceNumber(), errMsg, GENESIS_HASH, latestHash,
+                        Instant.now().toString(), "LINK_BROKEN", expectedPreviousHash, log.getPreviousHash());
             }
 
-            // 2. Recompute cryptographic hash of current block
+            // 3. Format check of current hash
+            if (log.getCurrentHash() == null || log.getCurrentHash().length() != 64) {
+                String errMsg = String.format("MALFORMED HASH AT SEQUENCE #%d: Current hash is corrupted or missing.", log.getSequenceNumber());
+                return new HashChainVerificationResult(false, i, log.getSequenceNumber(), errMsg, GENESIS_HASH, latestHash,
+                        Instant.now().toString(), "MALFORMED_HASH", "64-char hex", log.getCurrentHash());
+            }
+
+            // 4. Recompute cryptographic hash of current block
             String recomputedHash = computeHash(
                     log.getPreviousHash(),
                     log.getClaimId(),
@@ -106,10 +131,12 @@ public class AuditChainService {
                     log.getTimestamp()
             );
 
-            // If the hash was created during initial seed or runtime, check format & non-emptiness
-            if (log.getCurrentHash() == null || log.getCurrentHash().length() != 64) {
-                String errMsg = String.format("MALFORMED HASH AT SEQUENCE #%d: Current hash is corrupted or missing.", log.getSequenceNumber());
-                return new HashChainVerificationResult(false, i, log.getSequenceNumber(), errMsg, GENESIS_HASH, latestHash, Instant.now().toString());
+            // 5. Verify stored hash matches recomputed canonical data hash
+            if (!log.getCurrentHash().equalsIgnoreCase(recomputedHash)) {
+                String errMsg = String.format("TAMPERED EVENT AT SEQUENCE #%d: Stored hash '%s' does not match recomputed data hash '%s'. Event data was altered out-of-band!",
+                        log.getSequenceNumber(), log.getCurrentHash(), recomputedHash);
+                return new HashChainVerificationResult(false, i, log.getSequenceNumber(), errMsg, GENESIS_HASH, latestHash,
+                        Instant.now().toString(), "HASH_MISMATCH", recomputedHash, log.getCurrentHash());
             }
 
             expectedPreviousHash = log.getCurrentHash();
@@ -122,7 +149,10 @@ public class AuditChainService {
                 null,
                 GENESIS_HASH,
                 latestHash,
-                Instant.now().toString()
+                Instant.now().toString(),
+                null,
+                null,
+                null
         );
     }
 }

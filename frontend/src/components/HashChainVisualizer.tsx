@@ -128,15 +128,42 @@ export const HashChainVisualizer: React.FC<Props> = ({ logs, onRefresh }) => {
                 Timestamp: {new Date(verification.verificationTimestamp).toLocaleTimeString()}
               </span>
             </div>
-            <p className="leading-relaxed text-emerald-900/90 text-xs">
+            <p className="leading-relaxed text-xs">
               {verification.valid
                 ? `Sequential verification successful: Checked ${verification.totalRecordsChecked} records from Genesis hash. All parent hashes and block signatures match.`
                 : verification.errorMessage}
             </p>
-            <div className="pt-1.5 flex flex-wrap items-center gap-4 text-[11px] font-mono text-emerald-800/80 border-t border-emerald-200/60">
+            {!verification.valid && (
+              <div className="p-3 rounded-xl bg-white/80 border border-rose-300 font-mono text-[11px] space-y-1 text-rose-950">
+                <div className="flex items-center gap-2">
+                  <span className="font-bold">Failure Category:</span>
+                  <span className="px-2 py-0.5 rounded bg-rose-100 text-rose-800 font-bold border border-rose-200">
+                    {verification.failureCategory || 'INTEGRITY_MISMATCH'}
+                  </span>
+                  {verification.brokenSequenceNumber && (
+                    <span className="font-bold">At Sequence #{verification.brokenSequenceNumber}</span>
+                  )}
+                </div>
+                {verification.expectedHash && (
+                  <div>
+                    <span className="text-slate-500 block">Expected Value:</span>
+                    <span className="text-emerald-700 break-all select-all font-bold">{verification.expectedHash}</span>
+                  </div>
+                )}
+                {verification.observedHash && (
+                  <div>
+                    <span className="text-slate-500 block">Observed Value (Tampered):</span>
+                    <span className="text-rose-700 break-all select-all font-bold">{verification.observedHash}</span>
+                  </div>
+                )}
+              </div>
+            )}
+            <div className={`pt-1.5 flex flex-wrap items-center gap-4 text-[11px] font-mono border-t ${verification.valid ? 'text-emerald-800/80 border-emerald-200/60' : 'text-rose-800/80 border-rose-200/60'}`}>
               <span>Genesis: {verification.genesisHash.substring(0, 16)}...</span>
               <span>•</span>
               <span>Tip Block: {verification.latestHash.substring(0, 16)}...</span>
+              <span>•</span>
+              <span>Checked: {verification.totalRecordsChecked} blocks</span>
             </div>
           </div>
         </div>
