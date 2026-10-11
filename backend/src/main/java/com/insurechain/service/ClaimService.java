@@ -68,10 +68,11 @@ public class ClaimService {
         Insurer insurer = insurerRepository.findById(policy.getInsurerId())
                 .orElseThrow(() -> new ResourceNotFoundException("Insurer not found with ID: " + policy.getInsurerId()));
 
-        // 1. Check for duplicates
+        // 1. Check for duplicates (using stable incident identifier and SHA-256 fingerprint)
         DuplicateDetectionService.DuplicateCheckOutcome duplicateCheck = duplicateDetectionService.checkDuplicate(
                 null,
                 policy.getId(),
+                request.getIncidentId(),
                 request.getIncidentDate(),
                 request.getCategory(),
                 request.getRequestedAmount()
@@ -79,6 +80,7 @@ public class ClaimService {
 
         String fingerprint = duplicateDetectionService.computeFingerprint(
                 policy.getId(),
+                request.getIncidentId(),
                 request.getIncidentDate(),
                 request.getCategory(),
                 request.getRequestedAmount()
@@ -100,6 +102,7 @@ public class ClaimService {
         claim.setNarrative(request.getNarrative());
         claim.setIncidentLocation(request.getIncidentLocation());
         claim.setStatus(ClaimStatus.SUBMITTED);
+        claim.setIncidentId(request.getIncidentId());
         claim.setIncidentFingerprint(fingerprint);
         claim.setDuplicateSuspected(duplicateCheck.isDuplicate());
         claim.setDuplicateReason(duplicateCheck.getReason());
@@ -195,11 +198,30 @@ public class ClaimService {
             }
         }
 
-        // 2. State Machine Rule Validation
+        // 2. State Machine Rule Validation & Duplicate Payout Blocker
         ClaimStatus currentStatus = claim.getStatus();
         ClaimStatus targetStatus = request.getTargetStatus();
 
-        validateStateTransition(currentStatus, targetStatus, role);
+        try {
+            validateStateTransition(claim, currentStatus, targetStatus, role);
+        } catch (InvalidWorkflowTransitionException ex) {
+            AuditAction attemptedAction = targetStatus == ClaimStatus.APPROVED ? AuditAction.CLAIM_APPROVED
+                    : targetStatus == ClaimStatus.PAID ? AuditAction.PAYMENT_ISSUED
+                    : targetStatus == ClaimStatus.REJECTED ? AuditAction.CLAIM_REJECTED
+                    : AuditAction.STATUS_CHANGE;
+
+            auditChainService.logRefusedAction(
+                    claim.getId(),
+                    claim.getInsurerId(),
+                    currentUser.getId(),
+                    currentUser.getUsername(),
+                    role.name(),
+                    attemptedAction,
+                    ex.getMessage(),
+                    ipAddress
+            );
+            throw ex;
+        }
 
         // 3. Apply Transition
         ClaimStatus previousStatus = currentStatus;
@@ -244,9 +266,32 @@ public class ClaimService {
         return getClaimDetail(claimId, currentUser);
     }
 
-    private void validateStateTransition(ClaimStatus current, ClaimStatus target, RoleType role) {
+    private void validateStateTransition(Claim claim, ClaimStatus current, ClaimStatus target, RoleType role) {
         if (current == target) {
             throw new InvalidWorkflowTransitionException("Claim is already in status: " + current);
+        }
+
+        // Feature 2: Anti-Duplicate Progression Blocker
+        // The problem specifically says the same incident under the same policy must not be paid twice
+        if (target == ClaimStatus.APPROVED || target == ClaimStatus.PAID) {
+            if (claim.isDuplicateSuspected()) {
+                throw new InvalidWorkflowTransitionException(
+                        String.format("DUPLICATE INCIDENT BLOCKED: Claim '%s' is flagged as a duplicate collision (%s). Prohibited from progressing to %s by IRDAI anti-double-dipping rules.",
+                                claim.getClaimReference(),
+                                claim.getDuplicateReason() != null ? claim.getDuplicateReason() : "Incident collision detected",
+                                target));
+            }
+
+            if (claim.getIncidentId() != null && !claim.getIncidentId().trim().isEmpty()) {
+                List<Claim> matchingClaims = claimRepository.findByPolicyIdAndIncidentIdAndIdNot(claim.getPolicyId(), claim.getIncidentId().trim(), claim.getId());
+                for (Claim other : matchingClaims) {
+                    if (other.getStatus() == ClaimStatus.PAID || other.getStatus() == ClaimStatus.APPROVED) {
+                        throw new InvalidWorkflowTransitionException(
+                                String.format("DUPLICATE INCIDENT BLOCKED: The same incident ('%s') under this policy has already been %s in claim '%s'. Duplicate payment is strictly prohibited.",
+                                        claim.getIncidentId(), other.getStatus(), other.getClaimReference()));
+                    }
+                }
+            }
         }
 
         switch (current) {
@@ -256,21 +301,22 @@ public class ClaimService {
                         throw new InvalidWorkflowTransitionException("Only claims officers, supervisors, or admins may transition a claim to UNDER_REVIEW.");
                     }
                 } else if (target == ClaimStatus.REJECTED) {
-                    if (role != RoleType.SUPERVISOR && role != RoleType.CLAIMS_OFFICER && role != RoleType.INSURER_ADMIN && role != RoleType.PLATFORM_ADMIN) {
-                        throw new InvalidWorkflowTransitionException("Only authorized personnel may reject a submitted claim.");
+                    if (role != RoleType.SUPERVISOR && role != RoleType.INSURER_ADMIN && role != RoleType.PLATFORM_ADMIN) {
+                        throw new InvalidWorkflowTransitionException("Only supervisors or administrators may reject a submitted claim. Officer role lacks rejection authority.");
                     }
                 } else {
-                    throw new InvalidWorkflowTransitionException("Invalid transition from SUBMITTED to " + target + ". Allowed: UNDER_REVIEW or REJECTED.");
+                    throw new InvalidWorkflowTransitionException("Invalid transition from SUBMITTED to " + target + ". Direct jump to " + target + " is strictly prohibited. Allowed: UNDER_REVIEW or REJECTED.");
                 }
             }
             case UNDER_REVIEW -> {
                 if (target == ClaimStatus.APPROVED) {
-                    if (role != RoleType.SUPERVISOR && role != RoleType.INSURER_ADMIN && role != RoleType.PLATFORM_ADMIN && role != RoleType.CLAIMS_OFFICER) {
-                        throw new InvalidWorkflowTransitionException("Only supervisors or authorized claims officers can approve claims.");
+                    // Claims officer CANNOT approve claims! Only SUPERVISOR, INSURER_ADMIN, PLATFORM_ADMIN
+                    if (role != RoleType.SUPERVISOR && role != RoleType.INSURER_ADMIN && role != RoleType.PLATFORM_ADMIN) {
+                        throw new InvalidWorkflowTransitionException("UNAUTHORIZED APPROVAL: Claims officers cannot approve claims. Claim approval requires SUPERVISOR or INSURER_ADMIN role.");
                     }
                 } else if (target == ClaimStatus.REJECTED) {
-                    if (role != RoleType.SUPERVISOR && role != RoleType.INSURER_ADMIN && role != RoleType.PLATFORM_ADMIN && role != RoleType.CLAIMS_OFFICER) {
-                        throw new InvalidWorkflowTransitionException("Only supervisors or authorized claims officers can reject claims.");
+                    if (role != RoleType.SUPERVISOR && role != RoleType.INSURER_ADMIN && role != RoleType.PLATFORM_ADMIN) {
+                        throw new InvalidWorkflowTransitionException("UNAUTHORIZED REJECTION: Claims officers cannot reject claims. Final rejection requires SUPERVISOR or INSURER_ADMIN role.");
                     }
                 } else if (target == ClaimStatus.ADDITIONAL_INFO_REQUIRED) {
                     if (role != RoleType.CLAIMS_OFFICER && role != RoleType.SUPERVISOR && role != RoleType.INSURER_ADMIN) {

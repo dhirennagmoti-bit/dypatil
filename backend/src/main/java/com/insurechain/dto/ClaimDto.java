@@ -25,6 +25,7 @@ public class ClaimDto {
     private String narrative;
     private String incidentLocation;
     private ClaimStatus status;
+    private String incidentId;
     private String incidentFingerprint;
     private boolean duplicateSuspected;
     private String duplicateReason;
@@ -52,6 +53,7 @@ public class ClaimDto {
         dto.setNarrative(claim.getNarrative());
         dto.setIncidentLocation(claim.getIncidentLocation());
         dto.setStatus(claim.getStatus());
+        dto.setIncidentId(claim.getIncidentId());
         dto.setIncidentFingerprint(claim.getIncidentFingerprint());
         dto.setDuplicateSuspected(claim.isDuplicateSuspected());
         dto.setDuplicateReason(claim.getDuplicateReason());
@@ -110,6 +112,9 @@ public class ClaimDto {
 
     public ClaimStatus getStatus() { return status; }
     public void setStatus(ClaimStatus status) { this.status = status; }
+
+    public String getIncidentId() { return incidentId; }
+    public void setIncidentId(String incidentId) { this.incidentId = incidentId; }
 
     public String getIncidentFingerprint() { return incidentFingerprint; }
     public void setIncidentFingerprint(String incidentFingerprint) { this.incidentFingerprint = incidentFingerprint; }

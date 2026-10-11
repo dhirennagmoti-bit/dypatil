@@ -20,9 +20,10 @@ public class DuplicateDetectionService {
     @Autowired
     private ClaimRepository claimRepository;
 
-    public String computeFingerprint(UUID policyId, LocalDate incidentDate, String category, BigDecimal amount) {
-        String normalized = String.format("%s:%s:%s:%s",
+    public String computeFingerprint(UUID policyId, String incidentId, LocalDate incidentDate, String category, BigDecimal amount) {
+        String normalized = String.format("%s:%s:%s:%s:%s",
                 policyId != null ? policyId.toString() : "",
+                incidentId != null ? incidentId.trim().toUpperCase() : "",
                 incidentDate != null ? incidentDate.toString() : "",
                 category != null ? category.trim().toUpperCase() : "",
                 amount != null ? amount.stripTrailingZeros().toPlainString() : "0");
@@ -34,6 +35,10 @@ public class DuplicateDetectionService {
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException("SHA-256 algorithm unavailable", e);
         }
+    }
+
+    public String computeFingerprint(UUID policyId, LocalDate incidentDate, String category, BigDecimal amount) {
+        return computeFingerprint(policyId, null, incidentDate, category, amount);
     }
 
     public static class DuplicateCheckOutcome {
@@ -49,21 +54,34 @@ public class DuplicateDetectionService {
         public String getReason() { return reason; }
     }
 
-    public DuplicateCheckOutcome checkDuplicate(UUID claimId, UUID policyId, LocalDate incidentDate,
+    public DuplicateCheckOutcome checkDuplicate(UUID claimId, UUID policyId, String incidentId, LocalDate incidentDate,
                                                 String category, BigDecimal requestedAmount) {
-        String fingerprint = computeFingerprint(policyId, incidentDate, category, requestedAmount);
+        // 1. Check stable incident identifier under same policy (e.g. INC-55 under POL-01)
+        if (incidentId != null && !incidentId.trim().isEmpty()) {
+            String normIncident = incidentId.trim();
+            List<Claim> matches = claimId != null
+                    ? claimRepository.findByPolicyIdAndIncidentIdAndIdNot(policyId, normIncident, claimId)
+                    : claimRepository.findByPolicyIdAndIncidentId(policyId, normIncident);
 
-        // 1. Check exact fingerprint collision
+            for (Claim c : matches) {
+                return new DuplicateCheckOutcome(true,
+                        String.format("STABLE INCIDENT DUPLICATE DETECTED: Incident ID '%s' under this policy is already registered under claim '%s' (Status: %s, Amount: ₹%s). The same incident under the same policy cannot be paid or filed twice.",
+                                normIncident, c.getClaimReference(), c.getStatus(), c.getRequestedAmount()));
+            }
+        }
+
+        // 2. Check exact fingerprint collision
+        String fingerprint = computeFingerprint(policyId, incidentId, incidentDate, category, requestedAmount);
         List<Claim> exactMatches = claimRepository.findByIncidentFingerprint(fingerprint);
         for (Claim c : exactMatches) {
             if (claimId == null || !c.getId().equals(claimId)) {
                 return new DuplicateCheckOutcome(true,
-                        String.format("EXACT DUPLICATE DETECTED: Claim matches incident fingerprint of existing claim '%s' filed on %s for category '%s' and amount $%s.",
+                        String.format("EXACT DUPLICATE DETECTED: Claim matches incident fingerprint of existing claim '%s' filed on %s for category '%s' and amount ₹%s.",
                                 c.getClaimReference(), c.getFilingDate(), c.getCategory(), c.getRequestedAmount()));
             }
         }
 
-        // 2. Check similar incident within ±3 days for the same policy
+        // 3. Check similar incident within ±3 days for the same policy
         UUID currentId = claimId != null ? claimId : UUID.randomUUID();
         LocalDate windowStart = incidentDate.minusDays(3);
         LocalDate windowEnd = incidentDate.plusDays(3);
@@ -78,5 +96,10 @@ public class DuplicateDetectionService {
         }
 
         return new DuplicateCheckOutcome(false, null);
+    }
+
+    public DuplicateCheckOutcome checkDuplicate(UUID claimId, UUID policyId, LocalDate incidentDate,
+                                                String category, BigDecimal requestedAmount) {
+        return checkDuplicate(claimId, policyId, null, incidentDate, category, requestedAmount);
     }
 }

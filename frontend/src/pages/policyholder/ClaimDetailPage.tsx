@@ -121,9 +121,14 @@ export const ClaimDetailPage: React.FC = () => {
         </div>
 
         <div className="p-4 rounded-xl border border-slate-200 bg-white text-xs space-y-1 shadow-card">
-          <span className="text-[#5C6470] block">Incident Location</span>
-          <span className="font-semibold text-[#0F172A] text-sm">{claim.incidentLocation || 'India'}</span>
-          <span className="text-[11px] text-blue-600 block font-mono font-bold">SHA-256 Fingerprint Verified</span>
+          <span className="text-[#5C6470] block">Incident ID & Location</span>
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono font-bold text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200 text-xs">
+              {claim.incidentId || 'INC-N/A'}
+            </span>
+            <span className="font-semibold text-[#0F172A] text-sm truncate">{claim.incidentLocation || 'India'}</span>
+          </div>
+          <span className="text-[11px] text-blue-600 block font-mono font-bold">Stable Identifier Indexed</span>
         </div>
       </div>
 
@@ -185,24 +190,39 @@ export const ClaimDetailPage: React.FC = () => {
           Cryptographic Claim Audit Trail ({auditLogs.length} Events):
         </h3>
         <div className="space-y-3">
-          {auditLogs.map((log) => (
-            <div
-              key={log.id}
-              className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs space-y-1.5"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-mono font-bold text-blue-700">{log.action}</span>
-                <span className="text-[#5C6470] font-mono text-[11px]">
-                  {new Date(log.timestamp).toLocaleString()}
-                </span>
+          {auditLogs.map((log) => {
+            const isRefused = log.action === 'ACTION_REFUSED';
+            return (
+              <div
+                key={log.id}
+                className={`p-3.5 rounded-xl border text-xs space-y-1.5 transition-all ${
+                  isRefused
+                    ? 'border-rose-300 bg-rose-50/80 text-rose-900 ring-1 ring-rose-200'
+                    : 'bg-slate-50 border-slate-200'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className={`font-mono font-bold ${isRefused ? 'text-rose-700 flex items-center gap-1' : 'text-blue-700'}`}>
+                    {isRefused && '⛔ '}
+                    {log.action}
+                  </span>
+                  <span className="text-[#5C6470] font-mono text-[11px]">
+                    {new Date(log.timestamp).toLocaleString()}
+                  </span>
+                </div>
+                {isRefused && log.previousState && (
+                  <p className="text-[11px] font-mono text-rose-600 font-semibold">
+                    Attempted Action: {log.previousState} [BLOCKED]
+                  </p>
+                )}
+                <p className={isRefused ? 'text-rose-900 font-medium' : 'text-[#0F172A]'}>{log.decisionReason}</p>
+                <div className="pt-1 flex items-center justify-between text-[10px] font-mono text-[#5C6470]">
+                  <span>By: {log.actorEmail} ({log.actorRole})</span>
+                  <span>Seq #{log.sequenceNumber} • Hash: {log.currentHash.substring(0, 16)}...</span>
+                </div>
               </div>
-              <p className="text-[#0F172A]">{log.decisionReason}</p>
-              <div className="pt-1 flex items-center gap-3 text-[10px] font-mono text-[#5C6470]">
-                <span>By: {log.actorEmail} ({log.actorRole})</span>
-                <span className="truncate">Hash: {log.currentHash.substring(0, 16)}...</span>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

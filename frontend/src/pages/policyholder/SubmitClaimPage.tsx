@@ -25,6 +25,7 @@ export const SubmitClaimPage: React.FC = () => {
   const [selectedPolicyId, setSelectedPolicyId] = useState<string>('');
   const [category, setCategory] = useState<string>('AUTO');
   const [requestedAmount, setRequestedAmount] = useState<number>(35000); // In Rupees
+  const [incidentId, setIncidentId] = useState<string>('INC-55');
   const [incidentDate, setIncidentDate] = useState<string>(
     new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
   );
@@ -92,15 +93,25 @@ export const SubmitClaimPage: React.FC = () => {
   }
 
   // Preset Scenario Loaders for hackathon judging in India
-  const loadScenario = (type: 'eligible' | 'late' | 'excluded' | 'above_limit') => {
+  const loadScenario = (type: 'eligible' | 'late' | 'excluded' | 'above_limit' | 'duplicate') => {
     if (!selectedPolicy) return;
     if (type === 'eligible') {
+      setIncidentId('INC-' + Math.floor(100 + Math.random() * 900));
       setIncidentDate(new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
       setRequestedAmount(35000);
       setCategory(selectedPolicy.category);
       setIncidentLocation('Western Express Highway, Mumbai, MH');
       setNarrative('Rear-ended at a traffic signal. Repair estimate and police panchnama filed on scene.');
+    } else if (type === 'duplicate') {
+      // Problem Statement B-02 Feature 2: Same incident ID (INC-55) under same policy
+      setIncidentId('INC-55');
+      setIncidentDate(new Date(Date.now() - 4 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
+      setRequestedAmount(20000);
+      setCategory(selectedPolicy.category);
+      setIncidentLocation('Outer Ring Road, Bengaluru, KA');
+      setNarrative('Same collision incident INC-55 previously filed under claim reference CLM-101. Attempting duplicate submission under same policy POL-01.');
     } else if (type === 'late') {
+      setIncidentId('INC-' + Math.floor(100 + Math.random() * 900));
       const lateDays = (selectedPolicy.filingWindowDays + 15) * 24 * 60 * 60 * 1000;
       setIncidentDate(new Date(Date.now() - lateDays).toISOString().split('T')[0]);
       setRequestedAmount(18500);
@@ -108,12 +119,14 @@ export const SubmitClaimPage: React.FC = () => {
       setIncidentLocation('Outer Ring Road, Bengaluru, KA');
       setNarrative('Minor bumper dent occurred last month. Delayed filing due to emergency out-of-station travel.');
     } else if (type === 'excluded') {
+      setIncidentId('INC-' + Math.floor(100 + Math.random() * 900));
       setIncidentDate(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
       setRequestedAmount(150000);
       setCategory(selectedPolicy.category);
       setIncidentLocation('Off-road track, Greater Noida, UP');
       setNarrative('Vehicle engine cracked during unauthorized off-road speed racing contest.');
     } else if (type === 'above_limit') {
+      setIncidentId('INC-' + Math.floor(100 + Math.random() * 900));
       setIncidentDate(new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]);
       setRequestedAmount(selectedPolicy.coverageLimit + 250000);
       setCategory(selectedPolicy.category);
@@ -133,6 +146,7 @@ export const SubmitClaimPage: React.FC = () => {
         policyId: selectedPolicyId,
         category,
         requestedAmount: Number(requestedAmount),
+        incidentId: incidentId.trim() || undefined,
         incidentDate,
         narrative,
         incidentLocation,
@@ -182,22 +196,30 @@ export const SubmitClaimPage: React.FC = () => {
           </span>
           <span className="text-[11px] font-mono text-[#64748B]">Live deterministic pre-check</span>
         </div>
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 text-xs">
           <button
             type="button"
             onClick={() => loadScenario('eligible')}
             className="p-3 rounded-xl bg-emerald-50/60 hover:bg-emerald-100/70 text-emerald-800 border border-emerald-200 text-left font-medium transition-all shadow-2xs hover:shadow-xs"
           >
-            <div className="font-bold text-xs flex items-center gap-1">✅ Standard Eligible</div>
+            <div className="font-bold text-xs flex items-center gap-1">✅ Eligible</div>
             <div className="text-[10px] text-emerald-700/80 mt-0.5">₹35,000 within limits</div>
+          </button>
+          <button
+            type="button"
+            onClick={() => loadScenario('duplicate')}
+            className="p-3 rounded-xl bg-purple-50/80 hover:bg-purple-100 text-purple-900 border border-purple-300 text-left font-medium transition-all shadow-2xs hover:shadow-xs ring-1 ring-purple-300"
+          >
+            <div className="font-bold text-xs flex items-center gap-1">🔁 Duplicate INC-55</div>
+            <div className="text-[10px] text-purple-700/90 mt-0.5">Collision demo (CLM-101/205)</div>
           </button>
           <button
             type="button"
             onClick={() => loadScenario('late')}
             className="p-3 rounded-xl bg-rose-50/60 hover:bg-rose-100/70 text-rose-800 border border-rose-200 text-left font-medium transition-all shadow-2xs hover:shadow-xs"
           >
-            <div className="font-bold text-xs flex items-center gap-1">⏰ Late Filing Rule</div>
-            <div className="text-[10px] text-rose-700/80 mt-0.5">Filing deadline exceeded</div>
+            <div className="font-bold text-xs flex items-center gap-1">⏰ Late Filing</div>
+            <div className="text-[10px] text-rose-700/80 mt-0.5">Deadline exceeded</div>
           </button>
           <button
             type="button"
@@ -205,7 +227,7 @@ export const SubmitClaimPage: React.FC = () => {
             className="p-3 rounded-xl bg-amber-50/60 hover:bg-amber-100/70 text-amber-800 border border-amber-200 text-left font-medium transition-all shadow-2xs hover:shadow-xs"
           >
             <div className="font-bold text-xs flex items-center gap-1">⛔ Excluded Peril</div>
-            <div className="text-[10px] text-amber-700/80 mt-0.5">Racing / unauthorized peril</div>
+            <div className="text-[10px] text-amber-700/80 mt-0.5">Racing / unauthorized</div>
           </button>
           <button
             type="button"
@@ -213,7 +235,7 @@ export const SubmitClaimPage: React.FC = () => {
             className="p-3 rounded-xl bg-blue-50/60 hover:bg-blue-100/70 text-blue-800 border border-blue-200 text-left font-medium transition-all shadow-2xs hover:shadow-xs"
           >
             <div className="font-bold text-xs flex items-center gap-1">📈 Above-Limit Cap</div>
-            <div className="text-[10px] text-blue-700/80 mt-0.5">Payout capped at policy limit</div>
+            <div className="text-[10px] text-blue-700/80 mt-0.5">Capped at policy limit</div>
           </button>
         </div>
       </div>
@@ -229,9 +251,16 @@ export const SubmitClaimPage: React.FC = () => {
         {/* Main Claim Form */}
         <form onSubmit={handleSubmit} className="lg:col-span-2 space-y-5 p-6 sm:p-7 rounded-2xl bg-white border border-slate-200 shadow-card">
           
-          {/* Policy Selector */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold text-[#0F172A]">Select Enrolled Policy</label>
+          {/* Policy Selector & Rule Card */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <label className="text-xs font-semibold text-[#0F172A]">Select Enrolled Policy</label>
+              {selectedPolicy && (
+                <span className="text-[11px] font-mono font-bold text-blue-700 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                  Policy ID: {selectedPolicy.policyNumber}
+                </span>
+              )}
+            </div>
             <select
               value={selectedPolicyId}
               onChange={(e) => {
@@ -247,9 +276,54 @@ export const SubmitClaimPage: React.FC = () => {
                 </option>
               ))}
             </select>
+
+            {/* Configured Policy Rules Breakdown */}
+            {selectedPolicy && (
+              <div className="p-3 rounded-xl bg-slate-50/80 border border-slate-200/80 grid grid-cols-2 sm:grid-cols-4 gap-2 text-[11px]">
+                <div>
+                  <span className="text-[#64748B] block text-[10px] uppercase font-semibold">Coverage Limit</span>
+                  <span className="font-mono font-bold text-[#0F172A]">₹{selectedPolicy.coverageLimit.toLocaleString('en-IN')}</span>
+                </div>
+                <div>
+                  <span className="text-[#64748B] block text-[10px] uppercase font-semibold">Deductible</span>
+                  <span className="font-mono font-bold text-[#0F172A]">₹{selectedPolicy.deductible.toLocaleString('en-IN')}</span>
+                </div>
+                <div>
+                  <span className="text-[#64748B] block text-[10px] uppercase font-semibold">Filing Window</span>
+                  <span className="font-mono font-bold text-[#0F172A]">{selectedPolicy.filingWindowDays} Days</span>
+                </div>
+                <div>
+                  <span className="text-[#64748B] block text-[10px] uppercase font-semibold">Excluded Perils</span>
+                  <span className="font-mono font-medium text-rose-700 truncate block" title={selectedPolicy.excludedCategories}>
+                    {selectedPolicy.excludedCategories}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
 
+          {/* Stable Incident Identifier & Category */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-[#0F172A] flex items-center justify-between">
+                <span>Simulated Incident ID</span>
+                <span className="text-[10px] font-mono text-purple-700 bg-purple-50 px-1.5 py-0.5 rounded border border-purple-200 font-semibold">
+                  Stable Matcher
+                </span>
+              </label>
+              <input
+                type="text"
+                required
+                value={incidentId}
+                onChange={(e) => setIncidentId(e.target.value)}
+                placeholder="e.g. INC-55"
+                className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs text-[#0F172A] font-mono font-bold shadow-2xs uppercase"
+              />
+              <p className="text-[10px] text-[#64748B]">
+                Used with Policy ID to prevent double payments (e.g. CLM-101 and CLM-205 on INC-55).
+              </p>
+            </div>
+
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-[#0F172A]">Incident Category</label>
               <input
@@ -259,8 +333,13 @@ export const SubmitClaimPage: React.FC = () => {
                 onChange={(e) => setCategory(e.target.value)}
                 className="w-full px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-xs text-[#0F172A] shadow-2xs font-medium"
               />
+              <p className="text-[10px] text-[#64748B]">
+                Must match covered policy scope (e.g. AUTO, PROPERTY, HEALTH).
+              </p>
             </div>
+          </div>
 
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-[#0F172A]">Claim Requested Amount (₹)</label>
               <input

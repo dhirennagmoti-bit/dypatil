@@ -66,9 +66,10 @@ public class AuditChainService {
     @Transactional
     public WorkflowAuditLog logRefusedAction(UUID claimId, UUID insurerId, UUID actorId, String actorEmail,
                                             String actorRole, AuditAction attemptedAction, String reason, String ipAddress) {
+        String attempted = attemptedAction != null ? attemptedAction.name() : "ATTEMPTED";
         return logWorkflowEvent(
                 claimId, insurerId, actorId, actorEmail, actorRole,
-                AuditAction.ACTION_REFUSED, null, "REFUSED",
+                AuditAction.ACTION_REFUSED, attempted, "REFUSED",
                 "SECURITY ACTION REFUSED: " + reason, ipAddress
         );
     }

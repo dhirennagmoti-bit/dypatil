@@ -73,6 +73,8 @@ export const ClaimReviewDetailPage: React.FC = () => {
       await fetchDetail();
     } catch (err: any) {
       setActionError(err.message || 'Workflow transition failed');
+      // Refresh audit logs so newly recorded ACTION_REFUSED entry appears immediately
+      await fetchDetail();
     } finally {
       setProcessing(false);
     }
@@ -115,9 +117,17 @@ export const ClaimReviewDetailPage: React.FC = () => {
               <h1 className="text-lg font-semibold font-mono text-ink">{claim.claimReference}</h1>
               <StatusBadge status={claim.status} size="md" />
             </div>
-            <p className="text-sm text-ink-muted">
-              {claim.policyholderName} · {claim.policyTitle} · {claim.insurerName}
-            </p>
+            <div className="flex flex-wrap items-center gap-2 text-xs text-ink-muted">
+              <span>Policyholder: <strong className="text-ink">{claim.policyholderName}</strong></span>
+              <span>•</span>
+              <span>Policy: <strong className="text-ink">{claim.policyTitle}</strong></span>
+              <span>•</span>
+              <span>Insurer: <strong className="text-ink">{claim.insurerName}</strong></span>
+              <span>•</span>
+              <span className="font-mono text-purple-700 bg-purple-50 px-2 py-0.5 rounded border border-purple-200 font-bold">
+                Incident ID: {claim.incidentId || 'INC-N/A'}
+              </span>
+            </div>
           </div>
 
           {/* Workflow Actions */}
@@ -140,8 +150,8 @@ export const ClaimReviewDetailPage: React.FC = () => {
                   onClick={() => {
                     setDecisionReason(
                       eligibilityEvaluation?.eligible
-                        ? `Approved per eligibility rules. Payout: $${approvedAmount}.`
-                        : 'Approved with officer override.'
+                        ? `Approved per deterministic eligibility rules. Payout: ₹${approvedAmount.toLocaleString('en-IN')}.`
+                        : 'Approved with supervisor override.'
                     );
                     setActiveModal('APPROVED');
                   }}
@@ -392,18 +402,46 @@ export const ClaimReviewDetailPage: React.FC = () => {
               Audit History ({auditLogs.length})
             </h3>
             <div className="space-y-2 max-h-72 overflow-y-auto">
-              {auditLogs.map((log) => (
-                <div key={log.id} className="p-3 rounded border border-gray-100 bg-gray-50 text-xs">
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="font-mono font-medium text-navy-700">{log.action}</span>
-                    <span className="text-ink-faint">{new Date(log.timestamp).toLocaleString()}</span>
+              {auditLogs.map((log) => {
+                const isRefused = log.action === 'ACTION_REFUSED';
+                return (
+                  <div
+                    key={log.id}
+                    className={`p-3 rounded border text-xs transition-all ${
+                      isRefused
+                        ? 'border-rose-300 bg-rose-50/80 text-rose-900 ring-1 ring-rose-200'
+                        : 'border-gray-100 bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <span className={`font-mono font-bold ${isRefused ? 'text-rose-700 flex items-center gap-1' : 'text-navy-700'}`}>
+                        {isRefused && '⛔ '}
+                        {log.action}
+                      </span>
+                      <span className="text-ink-faint font-mono text-[10px]">
+                        {new Date(log.timestamp).toLocaleTimeString()}
+                      </span>
+                    </div>
+                    <p className={`font-medium ${isRefused ? 'text-rose-800' : 'text-ink-muted'}`}>
+                      {log.actorEmail} ({log.actorRole})
+                    </p>
+                    {isRefused && log.previousState && (
+                      <p className="text-[11px] font-mono text-rose-600 font-semibold mt-0.5">
+                        Attempted Action: {log.previousState} [BLOCKED]
+                      </p>
+                    )}
+                    {log.decisionReason && (
+                      <p className={`mt-1 text-[11px] leading-relaxed ${isRefused ? 'text-rose-900 font-medium' : 'text-ink-muted italic'}`}>
+                        {log.decisionReason}
+                      </p>
+                    )}
+                    <div className="mt-1 pt-1 border-t border-slate-200/50 flex items-center justify-between text-[10px] font-mono text-slate-500">
+                      <span>Seq #{log.sequenceNumber}</span>
+                      <span title={log.currentHash}>Hash: {log.currentHash.substring(0, 12)}...</span>
+                    </div>
                   </div>
-                  <p className="text-ink-muted">{log.actorEmail} ({log.actorRole})</p>
-                  {log.decisionReason && (
-                    <p className="text-ink-muted mt-1 italic">{log.decisionReason}</p>
-                  )}
-                </div>
-              ))}
+                );
+              })}
               {auditLogs.length === 0 && (
                 <p className="text-xs text-ink-muted py-2">No audit events recorded yet.</p>
               )}

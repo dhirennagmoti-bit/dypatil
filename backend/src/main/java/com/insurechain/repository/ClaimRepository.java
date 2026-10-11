@@ -21,6 +21,8 @@ public interface ClaimRepository extends JpaRepository<Claim, UUID> {
     List<Claim> findByStatusOrderByCreatedAtDesc(ClaimStatus status);
 
     List<Claim> findByIncidentFingerprint(String incidentFingerprint);
+    List<Claim> findByPolicyIdAndIncidentId(UUID policyId, String incidentId);
+    List<Claim> findByPolicyIdAndIncidentIdAndIdNot(UUID policyId, String incidentId, UUID id);
 
     @Query("SELECT c FROM Claim c WHERE c.policyId = :policyId AND c.incidentDate BETWEEN :startDate AND :endDate AND c.id <> :excludeClaimId")
     List<Claim> findSimilarClaims(

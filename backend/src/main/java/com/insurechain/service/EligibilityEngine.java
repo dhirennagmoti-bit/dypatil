@@ -104,14 +104,14 @@ public class EligibilityEngine {
             if (suggestedPayout.compareTo(BigDecimal.ZERO) < 0) suggestedPayout = BigDecimal.ZERO;
 
             ruleResults.add(new RuleCheckResult("COVERAGE_LIMIT", false,
-                    String.format("Requested amount ($%s) exceeds policy coverage limit ($%s). Documented capping rule applied: Excess amount ($%s) excluded. Maximum allowable payout capped at $%s (limit $%s minus deductible $%s).",
+                    String.format("Requested amount (₹%s) exceeds policy coverage limit (₹%s). Documented capping rule applied: Excess amount (₹%s) excluded. Maximum allowable payout capped at ₹%s (limit ₹%s minus deductible ₹%s).",
                             requested, limit, excess, suggestedPayout, limit, deductible)));
         } else {
             suggestedPayout = requested.subtract(deductible);
             if (suggestedPayout.compareTo(BigDecimal.ZERO) < 0) suggestedPayout = BigDecimal.ZERO;
 
             ruleResults.add(new RuleCheckResult("COVERAGE_LIMIT", true,
-                    String.format("Requested amount ($%s) is within policy limit ($%s). Deductible of $%s applied -> Suggested payout: $%s.",
+                    String.format("Requested amount (₹%s) is within policy limit (₹%s). Deductible of ₹%s applied -> Suggested payout: ₹%s.",
                             requested, limit, deductible, suggestedPayout)));
         }
 
@@ -132,10 +132,10 @@ public class EligibilityEngine {
         String primaryExplanation;
         if (overallEligible) {
             if (requested.compareTo(limit) > 0) {
-                primaryExplanation = String.format("ELIGIBLE (CAPPED): Claim meets eligibility criteria. Payout capped at policy limit ($%s) minus deductible ($%s) = $%s.",
+                primaryExplanation = String.format("ELIGIBLE (CAPPED): Claim meets eligibility criteria. Payout capped at policy limit (₹%s) minus deductible (₹%s) = ₹%s.",
                         limit, deductible, suggestedPayout);
             } else {
-                primaryExplanation = String.format("ELIGIBLE: Claim satisfies all deterministic policy conditions. Suggested payout after $%s deductible is $%s.",
+                primaryExplanation = String.format("ELIGIBLE: Claim satisfies all deterministic policy conditions. Suggested payout after ₹%s deductible is ₹%s.",
                         deductible, suggestedPayout);
             }
         } else {

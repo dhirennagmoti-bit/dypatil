@@ -73,6 +73,7 @@ export interface Claim {
   narrative: string;
   incidentLocation?: string;
   status: ClaimStatus;
+  incidentId?: string | null;
   incidentFingerprint: string;
   duplicateSuspected: boolean;
   duplicateReason?: string | null;

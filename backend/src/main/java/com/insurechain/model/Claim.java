@@ -51,6 +51,9 @@ public class Claim {
     @Column(nullable = false, length = 50)
     private ClaimStatus status = ClaimStatus.SUBMITTED;
 
+    @Column(name = "incident_id", length = 100)
+    private String incidentId;
+
     @Column(name = "incident_fingerprint", nullable = false, length = 64)
     private String incidentFingerprint;
 
@@ -111,6 +114,9 @@ public class Claim {
 
     public ClaimStatus getStatus() { return status; }
     public void setStatus(ClaimStatus status) { this.status = status; }
+
+    public String getIncidentId() { return incidentId; }
+    public void setIncidentId(String incidentId) { this.incidentId = incidentId; }
 
     public String getIncidentFingerprint() { return incidentFingerprint; }
     public void setIncidentFingerprint(String incidentFingerprint) { this.incidentFingerprint = incidentFingerprint; }

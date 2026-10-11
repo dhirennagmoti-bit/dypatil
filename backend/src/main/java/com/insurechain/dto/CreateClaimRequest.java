@@ -29,6 +29,8 @@ public class CreateClaimRequest {
 
     private String incidentLocation;
 
+    private String incidentId;
+
     private List<EvidenceItem> evidence = new ArrayList<>();
 
     public static class EvidenceItem {
@@ -83,6 +85,9 @@ public class CreateClaimRequest {
 
     public String getIncidentLocation() { return incidentLocation; }
     public void setIncidentLocation(String incidentLocation) { this.incidentLocation = incidentLocation; }
+
+    public String getIncidentId() { return incidentId; }
+    public void setIncidentId(String incidentId) { this.incidentId = incidentId; }
 
     public List<EvidenceItem> getEvidence() { return evidence; }
     public void setEvidence(List<EvidenceItem> evidence) { this.evidence = evidence; }

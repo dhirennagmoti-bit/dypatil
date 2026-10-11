@@ -96,6 +96,7 @@ export const api = {
       policyId: string;
       category: string;
       requestedAmount: number;
+      incidentId?: string;
       incidentDate: string;
       narrative: string;
       incidentLocation?: string;

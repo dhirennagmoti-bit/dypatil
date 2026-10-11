@@ -31,7 +31,29 @@
 - [x] **Login Page (`/login`)**:
   - Updated with Indian demo personas (Rahul Sharma, Priya Patel, Rajesh Verma, Vikram Malhotra, Ananya Sen) and direct registration callout.
 
+### Core Features (Problem Statement B-02 Full Implementation)
+- [x] **Feature 1 — Policy Eligibility Engine**:
+  - Implemented configurable policy rules: Policy ID, coverage limit, excluded categories (JSON array), filing window (days).
+  - Enforced claim evaluation: policy, incident date, filing date, category, amount, narrative, and evidence references.
+  - Calculated payout capped at coverage limit minus deductible in Indian Rupees (₹), returning explicit explanations for ineligibility.
+- [x] **Feature 2 — Duplicate Incident Detection & Payment Blocker**:
+  - Integrated stable incident identifier (`incidentId`, e.g. `INC-55`) matched against `policyId` to detect duplicate incident filings regardless of claim reference (CLM-101 vs CLM-205).
+  - Hard-blocked duplicate claims from progressing to `APPROVED` or `PAID` state, returning explicit anti-double-dipping refusal messages.
+  - Added 1-Click "🔁 Duplicate INC-55" simulation preset in claim submission UI.
+- [x] **Feature 3 — Defined Workflow State Transitions & Role Permissions**:
+  - Enforced strict state machine rules on the Spring Boot backend action handler:
+    - `SUBMITTED` -> `UNDER_REVIEW` (Officer/Supervisor)
+    - `UNDER_REVIEW` -> `APPROVED` / `REJECTED` (Supervisor only; Claims Officers are forbidden and blocked)
+    - `APPROVED` -> `PAID` (Supervisor/Admin only)
+    - Direct skips (e.g. `SUBMITTED` -> `PAID`) are strictly rejected.
+- [x] **Feature 4 — Audit Trail & Tamper Detection**:
+  - Chronological immutable record for accepted transitions and refused attempts (`ACTION_REFUSED`).
+  - Records who attempted, which claim, action attempted, accepted/refused status, refusal reason, and timestamp.
+  - Sequential SHA-256 parent hash chaining linking each block to the previous entry's digital fingerprint.
+  - Real-time cryptographic ledger verification via `GET /api/audit/verify-chain` with interactive UI verification button.
+
 ### Verification Status
-- Frontend `npm run build`: **PASSED** (`tsc && vite build` built successfully with 0 errors in 20.32s)
+- Backend `mvn test`: **PASSED** (10/10 tests passed with 0 errors across `AuditChainTest`, `DuplicateDetectionAndWorkflowTest`, and `EligibilityEngineTest`)
+- Frontend `npm run build`: **PASSED** (`tsc && vite build` built successfully with 0 errors in 9.51s)
 - Frontend Dev Server: Running at `http://localhost:5173`
 - Spring Boot Backend: Running at `http://localhost:8080` (Connected to Supabase PostgreSQL, `status: ONLINE`)

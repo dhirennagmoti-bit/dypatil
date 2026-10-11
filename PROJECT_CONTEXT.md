@@ -60,17 +60,28 @@ InsureChain is a multi-insurer insurance policy and claims management platform b
 - `GET /api/ai/review/{claimId}` — AI extraction result
 - `POST /api/ai/reanalyze/{claimId}` — Re-trigger AI analysis
 
-## Key Business Rules
-1. Policy must be active (between effective and expiry dates).
-2. Claim must be filed within `filingWindowDays` of incident.
-3. Incident category must not be in policy's excluded categories.
-4. Payout = min(requestedAmount, coverageLimit) - deductible in Indian Rupees (₹).
-5. Duplicate detection via SHA-256 fingerprint of policy+incident+category+amount.
+## Key Business Rules & Core Engine Specifications
+1. **Feature 1 — Policy Eligibility Engine**:
+   - Policies configured with Policy ID, Coverage Limit, Excluded Categories (JSON list), and Filing Window (days).
+   - Claims require policy, incident date, filing date, category, amount, narrative, and evidence references.
+   - Payout calculated as min(requestedAmount, coverageLimit) - deductible in Indian Rupees (₹).
+   - Explicit failure reasons returned when late, excluded peril, or duplicate collision occurs.
+2. **Feature 2 — Duplicate Incident Detection**:
+   - Multi-layer duplicate detection combining a stable incident identifier (`incidentId`, e.g., `INC-55`) + `policyId`, alongside SHA-256 fingerprinting.
+   - Prohibits paying the same incident twice under the same policy regardless of claim reference (e.g. `CLM-101` vs `CLM-205` for `INC-55`).
+   - Hard blocks duplicate claims from progressing to `APPROVED` or `PAID` states.
+3. **Feature 3 — Defined Workflow State Transitions & Role Permissions**:
+   - Valid transitions: `SUBMITTED` -> `UNDER_REVIEW` (Officer/Supervisor), `UNDER_REVIEW` -> `APPROVED`/`REJECTED` (Supervisor/Admin only; Officer cannot approve), `APPROVED` -> `PAID` (Admin/Supervisor).
+   - Direct leaps (e.g. `SUBMITTED` -> `PAID`) and unauthorized officer approvals are strictly rejected at the backend API handler.
+4. **Feature 4 — Audit Trail & Tamper Detection**:
+   - Chronological immutable record for accepted decisions AND refused actions (`ACTION_REFUSED`).
+   - Captures who attempted, which claim, action attempted, accepted/refused status, refusal reason, timestamp, and sequential parent SHA-256 hash pointer.
+   - Mathematical verification via `GET /api/audit/verify-chain`.
 
 ## Database Schema
 Managed by JPA/Hibernate with `ddl-auto: none`. Key tables:
 - `users`, `insurers`, `policies`, `user_policies`
-- `claims`, `claim_evidence`, `eligibility_evaluations`
+- `claims` (includes `incident_id`, `incident_fingerprint`, `is_duplicate_suspected`, `duplicate_reason`), `claim_evidences`, `eligibility_evaluations`
 - `ai_extraction_results`, `workflow_audit_logs`
 
 ## Environment Variables
