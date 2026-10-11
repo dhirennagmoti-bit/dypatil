@@ -54,7 +54,7 @@ export interface Policy {
   effectiveDate: string;
   expiryDate: string;
   active: boolean;
-  createdAt: string;
+  createdAt?: string;
 }
 
 export interface Claim {
