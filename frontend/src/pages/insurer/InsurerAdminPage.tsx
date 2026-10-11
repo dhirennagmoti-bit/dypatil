@@ -20,9 +20,6 @@ import {
   YAxis,
   Tooltip,
   ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
 } from 'recharts';
 
 export const InsurerAdminPage: React.FC = () => {
@@ -95,42 +92,42 @@ export const InsurerAdminPage: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="max-w-7xl mx-auto px-4 py-16 text-center text-slate-400">Loading insurer admin portal...</div>;
+    return <div className="max-w-7xl mx-auto px-4 py-16 text-center text-[#5C6470]">Loading insurer admin portal...</div>;
   }
 
   const chartData = metrics
     ? [
-        { name: 'Submitted', count: metrics.submittedClaims, fill: '#3b82f6' },
-        { name: 'Under Review', count: metrics.underReviewClaims, fill: '#f59e0b' },
-        { name: 'Approved', count: metrics.approvedClaims, fill: '#10b981' },
-        { name: 'Rejected', count: metrics.rejectedClaims, fill: '#f43f5e' },
-        { name: 'Paid', count: metrics.paidClaims, fill: '#14b8a6' },
+        { name: 'Submitted', count: metrics.submittedClaims, fill: '#42658A' },
+        { name: 'Under Review', count: metrics.underReviewClaims, fill: '#d97706' },
+        { name: 'Approved', count: metrics.approvedClaims, fill: '#059669' },
+        { name: 'Rejected', count: metrics.rejectedClaims, fill: '#dc2626' },
+        { name: 'Paid', count: metrics.paidClaims, fill: '#0d9488' },
       ]
     : [];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-purple-950/20 to-slate-900 border border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-xl bg-white border border-[#DDE1E6] shadow-sm">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-              <Building2 className="w-6 h-6 text-purple-400" />
+            <h1 className="text-2xl font-bold text-[#183153] tracking-tight flex items-center gap-2">
+              <Building2 className="w-6 h-6 text-[#42658A]" />
               {insurer?.name || 'Insurer Administration'}
             </h1>
-            <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-purple-500/10 text-purple-400 border border-purple-500/20">
+            <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-blue-50 text-[#183153] border border-blue-200 font-semibold">
               Code: {insurer?.code}
             </span>
           </div>
-          <p className="text-xs text-slate-400">
+          <p className="text-xs text-[#5C6470]">
             Configure underwriting rules, manage organization staff, and oversee claims adjudication analytics.
           </p>
         </div>
 
         <button
           onClick={() => setShowCreateModal(true)}
-          className="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs flex items-center gap-2 shadow-md shadow-indigo-600/30"
+          className="px-4 py-2.5 rounded-lg bg-[#183153] hover:bg-[#12243d] text-white font-medium text-xs flex items-center gap-2 shadow-sm transition-colors"
         >
           <PlusCircle className="w-4 h-4" />
           Create New Policy Plan
@@ -140,32 +137,32 @@ export const InsurerAdminPage: React.FC = () => {
       {/* Metrics Cards */}
       {metrics && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/60 space-y-1">
-            <span className="text-xs text-slate-400">Total Claims Volume</span>
-            <div className="text-2xl font-bold font-mono text-white">{metrics.totalClaims}</div>
-            <span className="text-[11px] text-slate-500">Across {metrics.totalPolicies} active policies</span>
+          <div className="p-4 rounded-xl border border-[#DDE1E6] bg-white space-y-1 shadow-sm">
+            <span className="text-xs text-[#5C6470]">Total Claims Volume</span>
+            <div className="text-2xl font-bold font-mono text-[#183153]">{metrics.totalClaims}</div>
+            <span className="text-[11px] text-[#5C6470]">Across {metrics.totalPolicies} active policies</span>
           </div>
 
-          <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/60 space-y-1">
-            <span className="text-xs text-slate-400">Total Claimed Value</span>
-            <div className="text-2xl font-bold font-mono text-indigo-400">
-              ${metrics.totalRequestedAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+          <div className="p-4 rounded-xl border border-[#DDE1E6] bg-white space-y-1 shadow-sm">
+            <span className="text-xs text-[#5C6470]">Total Claimed Value</span>
+            <div className="text-2xl font-bold font-mono text-[#42658A]">
+              ₹{metrics.totalRequestedAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </div>
-            <span className="text-[11px] text-slate-500">Submitted requested liability</span>
+            <span className="text-[11px] text-[#5C6470]">Submitted requested liability</span>
           </div>
 
-          <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/60 space-y-1">
-            <span className="text-xs text-slate-400">Approved Settlements</span>
-            <div className="text-2xl font-bold font-mono text-emerald-400">
-              ${metrics.totalApprovedAmount.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+          <div className="p-4 rounded-xl border border-[#DDE1E6] bg-white space-y-1 shadow-sm">
+            <span className="text-xs text-[#5C6470]">Approved Settlements</span>
+            <div className="text-2xl font-bold font-mono text-emerald-700">
+              ₹{metrics.totalApprovedAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </div>
-            <span className="text-[11px] text-slate-500">{metrics.approvedClaims + metrics.paidClaims} claims authorized</span>
+            <span className="text-[11px] text-[#5C6470]">{metrics.approvedClaims + metrics.paidClaims} claims authorized</span>
           </div>
 
-          <div className="p-4 rounded-xl border border-slate-800 bg-slate-900/60 space-y-1">
-            <span className="text-xs text-slate-400">Settled & Paid</span>
-            <div className="text-2xl font-bold font-mono text-teal-400">{metrics.paidClaims}</div>
-            <span className="text-[11px] text-slate-500">{metrics.rejectedClaims} claims rejected</span>
+          <div className="p-4 rounded-xl border border-[#DDE1E6] bg-white space-y-1 shadow-sm">
+            <span className="text-xs text-[#5C6470]">Settled & Paid</span>
+            <div className="text-2xl font-bold font-mono text-teal-700">{metrics.paidClaims}</div>
+            <span className="text-[11px] text-[#5C6470]">{metrics.rejectedClaims} claims rejected</span>
           </div>
         </div>
       )}
@@ -174,41 +171,41 @@ export const InsurerAdminPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         {/* Recharts Bar Chart */}
-        <div className="lg:col-span-2 p-5 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-4">
-          <h3 className="text-xs font-bold font-mono uppercase text-slate-300 tracking-wider flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-indigo-400" />
+        <div className="lg:col-span-2 p-5 rounded-xl border border-[#DDE1E6] bg-white space-y-4 shadow-sm">
+          <h3 className="text-xs font-bold font-mono uppercase text-[#183153] tracking-wider flex items-center gap-2">
+            <BarChart3 className="w-4 h-4 text-[#42658A]" />
             Claim Adjudication Workflow Distribution
           </h3>
           <div className="h-64 w-full">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={chartData}>
-                <XAxis dataKey="name" stroke="#64748b" fontSize={11} />
-                <YAxis stroke="#64748b" fontSize={11} />
+                <XAxis dataKey="name" stroke="#5C6470" fontSize={11} />
+                <YAxis stroke="#5C6470" fontSize={11} />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', fontSize: '12px' }}
+                  contentStyle={{ backgroundColor: '#ffffff', borderColor: '#DDE1E6', borderRadius: '8px', fontSize: '12px', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
                 />
-                <Bar dataKey="count" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="count" radius={[4, 4, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
           </div>
         </div>
 
         {/* Organization Personnel */}
-        <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-4">
-          <h3 className="text-xs font-bold font-mono uppercase text-slate-300 tracking-wider flex items-center gap-2">
-            <Users className="w-4 h-4 text-indigo-400" />
+        <div className="p-5 rounded-xl border border-[#DDE1E6] bg-white space-y-4 shadow-sm">
+          <h3 className="text-xs font-bold font-mono uppercase text-[#183153] tracking-wider flex items-center gap-2">
+            <Users className="w-4 h-4 text-[#42658A]" />
             Authorized Organization Personnel ({employees.length})
           </h3>
           <div className="space-y-2 max-h-64 overflow-y-auto">
             {employees.map((emp) => (
-              <div key={emp.id} className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs">
+              <div key={emp.id} className="p-3 rounded-lg bg-[#F7F7F4] border border-[#DDE1E6] text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="font-semibold text-slate-200">{emp.fullName}</span>
-                  <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                  <span className="font-semibold text-[#252B33]">{emp.fullName}</span>
+                  <span className="px-1.5 py-0.5 rounded text-[10px] font-mono bg-blue-50 text-[#183153] border border-blue-200">
                     {emp.role}
                   </span>
                 </div>
-                <span className="text-[11px] font-mono text-slate-400 block mt-0.5">{emp.email}</span>
+                <span className="text-[11px] font-mono text-[#5C6470] block mt-0.5">{emp.email}</span>
               </div>
             ))}
           </div>
@@ -218,8 +215,8 @@ export const InsurerAdminPage: React.FC = () => {
 
       {/* Underwriting Policies Table */}
       <div className="space-y-4">
-        <h2 className="text-base font-bold text-white flex items-center gap-2">
-          <Shield className="w-4 h-4 text-indigo-400" />
+        <h2 className="text-base font-bold text-[#183153] flex items-center gap-2">
+          <Shield className="w-4 h-4 text-[#42658A]" />
           Underwriting Policies & Rules ({policies.length})
         </h2>
 
@@ -231,38 +228,38 @@ export const InsurerAdminPage: React.FC = () => {
             } catch (_) {}
 
             return (
-              <div key={p.id} className="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-3">
+              <div key={p.id} className="p-5 rounded-xl border border-[#DDE1E6] bg-white space-y-3 shadow-sm">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h3 className="text-base font-bold text-white">{p.title}</h3>
-                    <span className="text-xs font-mono text-slate-400">#{p.policyNumber}</span>
+                    <h3 className="text-base font-bold text-[#252B33]">{p.title}</h3>
+                    <span className="text-xs font-mono text-[#5C6470]">#{p.policyNumber}</span>
                   </div>
-                  <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
                     ACTIVE
                   </span>
                 </div>
 
-                <div className="grid grid-cols-3 gap-2 text-xs border-t border-slate-800 pt-2">
+                <div className="grid grid-cols-3 gap-2 text-xs border-t border-[#F0F2F5] pt-3">
                   <div>
-                    <span className="text-slate-500 block text-[11px]">Coverage Limit</span>
-                    <strong className="text-slate-200 font-mono">${p.coverageLimit.toLocaleString()}</strong>
+                    <span className="text-[#5C6470] block text-[11px]">Coverage Limit</span>
+                    <strong className="text-[#252B33] font-mono">₹{p.coverageLimit.toLocaleString('en-IN')}</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[11px]">Deductible</span>
-                    <strong className="text-slate-200 font-mono">${p.deductible.toLocaleString()}</strong>
+                    <span className="text-[#5C6470] block text-[11px]">Deductible</span>
+                    <strong className="text-[#252B33] font-mono">₹{p.deductible.toLocaleString('en-IN')}</strong>
                   </div>
                   <div>
-                    <span className="text-slate-500 block text-[11px]">Filing Window</span>
-                    <strong className="text-slate-200 font-mono">{p.filingWindowDays} Days</strong>
+                    <span className="text-[#5C6470] block text-[11px]">Filing Window</span>
+                    <strong className="text-[#252B33] font-mono">{p.filingWindowDays} Days</strong>
                   </div>
                 </div>
 
                 {exclusions.length > 0 && (
                   <div className="pt-1">
-                    <span className="text-[11px] text-slate-500 block mb-1">Excluded Categories:</span>
+                    <span className="text-[11px] text-[#5C6470] block mb-1 font-medium">Excluded Categories:</span>
                     <div className="flex flex-wrap gap-1.5">
                       {exclusions.map((ex, i) => (
-                        <span key={i} className="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-950/40 text-rose-300 border border-rose-900/40">
+                        <span key={i} className="px-2 py-0.5 rounded text-[10px] font-mono bg-rose-50 text-rose-700 border border-rose-200">
                           ⛔ {ex}
                         </span>
                       ))}
@@ -277,11 +274,11 @@ export const InsurerAdminPage: React.FC = () => {
 
       {/* Create Policy Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-xl p-6 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-base font-bold text-white">Create New Insurance Policy Plan</h3>
-              <button onClick={() => setShowCreateModal(false)} className="text-slate-400 hover:text-white text-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-in fade-in">
+          <div className="w-full max-w-xl p-6 rounded-xl bg-white border border-[#DDE1E6] shadow-xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#F0F2F5] pb-3">
+              <h3 className="text-base font-bold text-[#183153]">Create New Insurance Policy Plan</h3>
+              <button onClick={() => setShowCreateModal(false)} className="text-[#5C6470] hover:text-[#252B33] text-xs font-semibold">
                 ✕ Cancel
               </button>
             </div>
@@ -289,71 +286,71 @@ export const InsurerAdminPage: React.FC = () => {
             <form onSubmit={handleCreatePolicy} className="space-y-4">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300">Policy Number</label>
+                  <label className="text-xs font-semibold text-[#252B33]">Policy Number</label>
                   <input
                     type="text"
                     required
                     value={newPolicy.policyNumber}
                     onChange={(e) => setNewPolicy({ ...newPolicy, policyNumber: e.target.value })}
                     placeholder="e.g. APEX-AUTO-202"
-                    className="w-full px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white"
+                    className="w-full px-3 py-1.5 rounded-lg bg-white border border-[#DDE1E6] text-xs text-[#252B33] focus:outline-none focus:border-[#183153]"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300">Policy Plan Title</label>
+                  <label className="text-xs font-semibold text-[#252B33]">Policy Plan Title</label>
                   <input
                     type="text"
                     required
                     value={newPolicy.title}
                     onChange={(e) => setNewPolicy({ ...newPolicy, title: e.target.value })}
                     placeholder="e.g. Comprehensive Commercial Shield"
-                    className="w-full px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white"
+                    className="w-full px-3 py-1.5 rounded-lg bg-white border border-[#DDE1E6] text-xs text-[#252B33] focus:outline-none focus:border-[#183153]"
                   />
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300">Coverage Limit ($)</label>
+                  <label className="text-xs font-semibold text-[#252B33]">Coverage Limit (₹)</label>
                   <input
                     type="number"
                     required
                     value={newPolicy.coverageLimit}
                     onChange={(e) => setNewPolicy({ ...newPolicy, coverageLimit: Number(e.target.value) })}
-                    className="w-full px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white font-mono"
+                    className="w-full px-3 py-1.5 rounded-lg bg-white border border-[#DDE1E6] text-xs text-[#252B33] font-mono focus:outline-none focus:border-[#183153]"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300">Deductible ($)</label>
+                  <label className="text-xs font-semibold text-[#252B33]">Deductible (₹)</label>
                   <input
                     type="number"
                     required
                     value={newPolicy.deductible}
                     onChange={(e) => setNewPolicy({ ...newPolicy, deductible: Number(e.target.value) })}
-                    className="w-full px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white font-mono"
+                    className="w-full px-3 py-1.5 rounded-lg bg-white border border-[#DDE1E6] text-xs text-[#252B33] font-mono focus:outline-none focus:border-[#183153]"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="text-xs font-semibold text-slate-300">Filing Window (Days)</label>
+                  <label className="text-xs font-semibold text-[#252B33]">Filing Window (Days)</label>
                   <input
                     type="number"
                     required
                     value={newPolicy.filingWindowDays}
                     onChange={(e) => setNewPolicy({ ...newPolicy, filingWindowDays: Number(e.target.value) })}
-                    className="w-full px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white font-mono"
+                    className="w-full px-3 py-1.5 rounded-lg bg-white border border-[#DDE1E6] text-xs text-[#252B33] font-mono focus:outline-none focus:border-[#183153]"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-300">Excluded Perils (JSON Array)</label>
+                <label className="text-xs font-semibold text-[#252B33]">Excluded Perils (JSON Array)</label>
                 <input
                   type="text"
                   required
                   value={newPolicy.excludedCategories}
                   onChange={(e) => setNewPolicy({ ...newPolicy, excludedCategories: e.target.value })}
                   placeholder='["WAR", "EARTHQUAKE", "RACING"]'
-                  className="w-full px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white font-mono"
+                  className="w-full px-3 py-1.5 rounded-lg bg-white border border-[#DDE1E6] text-xs text-[#252B33] font-mono focus:outline-none focus:border-[#183153]"
                 />
               </div>
 
@@ -361,14 +358,14 @@ export const InsurerAdminPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold"
+                  className="px-4 py-2 rounded-lg border border-[#DDE1E6] bg-white text-[#5C6470] hover:bg-slate-50 text-xs font-medium"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingPolicy}
-                  className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold shadow-md shadow-indigo-600/30"
+                  className="px-5 py-2 rounded-lg bg-[#183153] hover:bg-[#12243d] text-white text-xs font-medium shadow-sm transition-colors"
                 >
                   {savingPolicy ? 'Saving...' : 'Deploy Policy'}
                 </button>

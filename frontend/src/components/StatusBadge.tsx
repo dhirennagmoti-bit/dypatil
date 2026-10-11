@@ -7,57 +7,71 @@ interface Props {
   size?: 'sm' | 'md' | 'lg';
 }
 
-export const StatusBadge: React.FC<Props> = ({ status, size = 'md' }) => {
-  const sizeClasses = {
-    sm: 'text-xs px-2 py-0.5 gap-1',
-    md: 'text-xs px-2.5 py-1 gap-1.5',
-    lg: 'text-sm px-3.5 py-1.5 gap-2 font-medium',
-  }[size];
+const statusConfig: Record<
+  ClaimStatus,
+  { label: string; badgeClass: string; dotClass: string; icon: React.FC<{ className?: string }> }
+> = {
+  SUBMITTED: {
+    label: 'Submitted',
+    badgeClass: 'bg-blue-50 text-blue-700 border-blue-200',
+    dotClass: 'bg-blue-500',
+    icon: Clock,
+  },
+  UNDER_REVIEW: {
+    label: 'Under Review',
+    badgeClass: 'bg-amber-50 text-amber-700 border-amber-200',
+    dotClass: 'bg-amber-500',
+    icon: AlertCircle,
+  },
+  ADDITIONAL_INFO_REQUIRED: {
+    label: 'Info Requested',
+    badgeClass: 'bg-purple-50 text-purple-700 border-purple-200',
+    dotClass: 'bg-purple-500',
+    icon: HelpCircle,
+  },
+  APPROVED: {
+    label: 'Approved',
+    badgeClass: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    dotClass: 'bg-emerald-500',
+    icon: CheckCircle2,
+  },
+  REJECTED: {
+    label: 'Rejected',
+    badgeClass: 'bg-rose-50 text-rose-700 border-rose-200',
+    dotClass: 'bg-rose-500',
+    icon: XCircle,
+  },
+  PAID: {
+    label: 'Settled & Paid',
+    badgeClass: 'bg-teal-50 text-teal-700 border-teal-200',
+    dotClass: 'bg-teal-500',
+    icon: DollarSign,
+  },
+};
 
-  switch (status) {
-    case 'SUBMITTED':
-      return (
-        <span className={`inline-flex items-center rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-medium ${sizeClasses}`}>
-          <Clock className="w-3.5 h-3.5" />
-          Submitted
-        </span>
-      );
-    case 'UNDER_REVIEW':
-      return (
-        <span className={`inline-flex items-center rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20 font-medium ${sizeClasses}`}>
-          <AlertCircle className="w-3.5 h-3.5 animate-pulse" />
-          Under Review
-        </span>
-      );
-    case 'ADDITIONAL_INFO_REQUIRED':
-      return (
-        <span className={`inline-flex items-center rounded-full bg-purple-500/10 text-purple-300 border border-purple-500/20 font-medium ${sizeClasses}`}>
-          <HelpCircle className="w-3.5 h-3.5" />
-          Info Requested
-        </span>
-      );
-    case 'APPROVED':
-      return (
-        <span className={`inline-flex items-center rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-medium ${sizeClasses}`}>
-          <CheckCircle2 className="w-3.5 h-3.5" />
-          Approved
-        </span>
-      );
-    case 'REJECTED':
-      return (
-        <span className={`inline-flex items-center rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 font-medium ${sizeClasses}`}>
-          <XCircle className="w-3.5 h-3.5" />
-          Rejected
-        </span>
-      );
-    case 'PAID':
-      return (
-        <span className={`inline-flex items-center rounded-full bg-teal-500/10 text-teal-300 border border-teal-500/20 font-medium ${sizeClasses}`}>
-          <DollarSign className="w-3.5 h-3.5" />
-          Settled / Paid
-        </span>
-      );
-    default:
-      return <span className={`inline-flex rounded-full bg-slate-800 text-slate-300 ${sizeClasses}`}>{status}</span>;
-  }
+export const StatusBadge: React.FC<Props> = ({ status, size = 'md' }) => {
+  const config = statusConfig[status] || statusConfig.SUBMITTED;
+  const Icon = config.icon;
+
+  const sizeClasses = {
+    sm: 'text-[10px] px-2 py-0.5 gap-1',
+    md: 'text-xs px-2.5 py-0.5 gap-1.5',
+    lg: 'text-xs px-3 py-1 gap-2 font-semibold',
+  };
+
+  const iconSizes = {
+    sm: 'w-3 h-3',
+    md: 'w-3.5 h-3.5',
+    lg: 'w-4 h-4',
+  };
+
+  return (
+    <span
+      className={`inline-flex items-center rounded-full font-mono border font-medium transition-all ${config.badgeClass} ${sizeClasses[size]}`}
+    >
+      <span className={`w-1.5 h-1.5 rounded-full ${config.dotClass}`}></span>
+      <Icon className={iconSizes[size]} />
+      {config.label}
+    </span>
+  );
 };

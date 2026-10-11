@@ -14,11 +14,7 @@ import {
   Clock,
   HelpCircle,
   DollarSign,
-  ShieldAlert,
   Paperclip,
-  Scale,
-  Building2,
-  User,
 } from 'lucide-react';
 
 export const ClaimReviewDetailPage: React.FC = () => {
@@ -59,7 +55,7 @@ export const ClaimReviewDetailPage: React.FC = () => {
 
   const handleExecuteTransition = async (targetStatus: ClaimStatus) => {
     if (!id || !decisionReason.trim()) {
-      setActionError('Decision reason / justification is mandatory.');
+      setActionError('Decision reason is mandatory.');
       return;
     }
 
@@ -83,15 +79,15 @@ export const ClaimReviewDetailPage: React.FC = () => {
   };
 
   if (loading) {
-    return <div className="max-w-6xl mx-auto px-4 py-16 text-center text-slate-400">Loading claim review workspace...</div>;
+    return <div className="max-w-screen-xl mx-auto px-4 py-16 text-center text-sm text-ink-muted">Loading claim details…</div>;
   }
 
   if (error || !detail) {
     return (
-      <div className="max-w-6xl mx-auto px-4 py-16 text-center space-y-4">
-        <p className="text-rose-400 text-sm">{error || 'Claim not found or access denied.'}</p>
-        <Link to="/officer/queue" className="text-xs text-indigo-400 underline">
-          Return to Review Queue
+      <div className="max-w-screen-xl mx-auto px-4 py-16 text-center space-y-3">
+        <p className="text-sm text-accent-error">{error || 'Claim not found or access denied.'}</p>
+        <Link to="/officer/queue" className="text-sm text-navy-500 hover:text-navy-700 underline">
+          Return to Claims Queue
         </Link>
       </div>
     );
@@ -100,44 +96,41 @@ export const ClaimReviewDetailPage: React.FC = () => {
   const { claim, policy, evidence, eligibilityEvaluation, aiExtraction, auditLogs } = detail;
 
   return (
-    <div className="max-w-6xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-      
-      {/* Top Back Navigation */}
+    <div className="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+
+      {/* Breadcrumb */}
       <Link
         to="/officer/queue"
-        className="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+        className="inline-flex items-center gap-1.5 text-sm text-navy-500 hover:text-navy-700 transition-colors"
       >
         <ArrowLeft className="w-3.5 h-3.5" />
-        Back to Claims Queue
+        Claims Queue
       </Link>
 
-      {/* Main Review Banner */}
-      <div className="p-6 rounded-2xl bg-slate-900 border border-slate-800 space-y-4">
+      {/* Page Header */}
+      <div className="bg-white rounded-lg border border-gray-200 p-5">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-xl sm:text-2xl font-bold font-mono text-white tracking-tight">
-                {claim.claimReference}
-              </h1>
-              <StatusBadge status={claim.status} size="lg" />
+          <div>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-lg font-semibold font-mono text-ink">{claim.claimReference}</h1>
+              <StatusBadge status={claim.status} size="md" />
             </div>
-            <p className="text-xs text-slate-400">
-              Claimant: <strong className="text-slate-200">{claim.policyholderName}</strong> • Policy:{' '}
-              <strong className="text-slate-200">{claim.policyTitle}</strong> ({claim.insurerName})
+            <p className="text-sm text-ink-muted">
+              {claim.policyholderName} · {claim.policyTitle} · {claim.insurerName}
             </p>
           </div>
 
-          {/* Workflow Action Bar */}
+          {/* Workflow Actions */}
           <div className="flex flex-wrap items-center gap-2">
             {claim.status === 'SUBMITTED' && (
               <button
                 onClick={() => {
-                  setDecisionReason('Commenced formal claims officer inspection.');
+                  setDecisionReason('Commenced formal review.');
                   setActiveModal('UNDER_REVIEW');
                 }}
-                className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-sm"
+                className="px-3.5 py-2 rounded bg-amber-600 hover:bg-amber-700 text-white font-medium text-xs flex items-center gap-1.5 transition-colors"
               >
-                <Clock className="w-4 h-4" /> Move to Under Review
+                <Clock className="w-3.5 h-3.5" /> Start Review
               </button>
             )}
 
@@ -147,34 +140,32 @@ export const ClaimReviewDetailPage: React.FC = () => {
                   onClick={() => {
                     setDecisionReason(
                       eligibilityEvaluation?.eligible
-                        ? `Approved in accordance with deterministic rules. Payout: $${approvedAmount}.`
-                        : 'Approved with officer override justification.'
+                        ? `Approved per eligibility rules. Payout: $${approvedAmount}.`
+                        : 'Approved with officer override.'
                     );
                     setActiveModal('APPROVED');
                   }}
-                  className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-sm"
+                  className="px-3.5 py-2 rounded bg-accent-success hover:opacity-90 text-white font-medium text-xs flex items-center gap-1.5 transition-colors"
                 >
-                  <CheckCircle2 className="w-4 h-4" /> Approve Claim
+                  <CheckCircle2 className="w-3.5 h-3.5" /> Approve
                 </button>
-
                 <button
                   onClick={() => {
-                    setDecisionReason(eligibilityEvaluation?.primaryExplanation || 'Claim rejected due to policy conditions.');
+                    setDecisionReason(eligibilityEvaluation?.primaryExplanation || 'Rejected due to policy conditions.');
                     setActiveModal('REJECTED');
                   }}
-                  className="px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-sm"
+                  className="px-3.5 py-2 rounded bg-accent-error hover:opacity-90 text-white font-medium text-xs flex items-center gap-1.5 transition-colors"
                 >
-                  <XCircle className="w-4 h-4" /> Reject Claim
+                  <XCircle className="w-3.5 h-3.5" /> Reject
                 </button>
-
                 <button
                   onClick={() => {
-                    setDecisionReason('Requesting supplemental mechanic receipt and official police incident certificate.');
+                    setDecisionReason('Additional documentation required.');
                     setActiveModal('ADDITIONAL_INFO_REQUIRED');
                   }}
-                  className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-sm"
+                  className="px-3.5 py-2 rounded bg-purple-600 hover:bg-purple-700 text-white font-medium text-xs flex items-center gap-1.5 transition-colors"
                 >
-                  <HelpCircle className="w-4 h-4" /> Request Info
+                  <HelpCircle className="w-3.5 h-3.5" /> Request Info
                 </button>
               </>
             )}
@@ -182,89 +173,89 @@ export const ClaimReviewDetailPage: React.FC = () => {
             {claim.status === 'APPROVED' && (
               <button
                 onClick={() => {
-                  setDecisionReason('Electronic claim payout settlement authorized.');
+                  setDecisionReason('Settlement payment authorized.');
                   setActiveModal('PAID');
                 }}
-                className="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold text-xs flex items-center gap-1.5 shadow-sm"
+                className="px-3.5 py-2 rounded bg-teal-600 hover:bg-teal-700 text-white font-medium text-xs flex items-center gap-1.5 transition-colors"
               >
-                <DollarSign className="w-4 h-4" /> Issue Settlement Payment
+                <DollarSign className="w-3.5 h-3.5" /> Issue Payment
               </button>
             )}
           </div>
         </div>
 
+        {/* Duplicate Warning */}
         {claim.duplicateSuspected && (
-          <DuplicateWarningBanner
-            fingerprint={claim.incidentFingerprint}
-            reason={claim.duplicateReason}
-          />
+          <div className="mt-4">
+            <DuplicateWarningBanner
+              fingerprint={claim.incidentFingerprint}
+              reason={claim.duplicateReason}
+            />
+          </div>
         )}
       </div>
 
-      {/* Decision Execution Modal */}
+      {/* Transition Confirmation Dialog */}
       {activeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in">
-          <div className="w-full max-w-lg p-6 rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-base font-bold text-white flex items-center gap-2">
-                <span>Confirm Transition:</span>
-                <span className="text-indigo-400 font-mono">{activeModal}</span>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40">
+          <div className="w-full max-w-lg bg-white rounded-lg border border-gray-200 shadow-xl">
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <h3 className="text-sm font-semibold text-ink">
+                Confirm Transition: <span className="font-mono text-navy-700">{activeModal}</span>
               </h3>
               <button
                 onClick={() => setActiveModal(null)}
-                className="text-slate-400 hover:text-white text-xs"
+                className="text-ink-muted hover:text-ink text-sm px-2"
               >
-                ✕ Cancel
+                ✕
               </button>
             </div>
 
-            {actionError && (
-              <div className="p-3 rounded-lg bg-rose-950/60 border border-rose-500/50 text-xs text-rose-300">
-                {actionError}
-              </div>
-            )}
+            <div className="p-4 space-y-4">
+              {actionError && (
+                <div className="p-3 rounded bg-red-50 border border-red-200 text-xs text-red-700">
+                  {actionError}
+                </div>
+              )}
 
-            {activeModal === 'APPROVED' && (
+              {activeModal === 'APPROVED' && (
+                <div className="space-y-1.5">
+                  <label className="text-xs font-medium text-ink">Approved Amount (₹)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={approvedAmount}
+                    onChange={(e) => setApprovedAmount(Number(e.target.value))}
+                    className="w-full px-3 py-2 rounded border border-gray-300 text-sm text-ink font-mono bg-white"
+                  />
+                  <p className="text-[11px] text-ink-muted">
+                    Suggested payout: ₹{eligibilityEvaluation?.suggestedPayoutAmount.toLocaleString('en-IN') || '0'}
+                  </p>
+                </div>
+              )}
+
               <div className="space-y-1.5">
-                <label className="text-xs font-semibold text-slate-300">
-                  Approved Settlement Amount ($)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="0.01"
-                  value={approvedAmount}
-                  onChange={(e) => setApprovedAmount(Number(e.target.value))}
-                  className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white font-mono focus:outline-none focus:border-indigo-500"
+                <label className="text-xs font-medium text-ink">Decision Reason (required)</label>
+                <textarea
+                  rows={3}
+                  required
+                  value={decisionReason}
+                  onChange={(e) => setDecisionReason(e.target.value)}
+                  placeholder="Justification for audit ledger…"
+                  className="w-full p-3 rounded border border-gray-300 text-sm text-ink bg-white resize-none"
                 />
-                <span className="text-[11px] text-slate-400 block">
-                  Suggested deterministic payout: ${eligibilityEvaluation?.suggestedPayoutAmount.toLocaleString() || '0'}
-                </span>
+                <p className="text-[11px] text-ink-muted">
+                  This will be cryptographically chained to the SHA-256 audit ledger.
+                </p>
               </div>
-            )}
-
-            <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-300">
-                Mandatory Decision Reason / Justification
-              </label>
-              <textarea
-                rows={3}
-                required
-                value={decisionReason}
-                onChange={(e) => setDecisionReason(e.target.value)}
-                placeholder="Enter justification for audit ledger..."
-                className="w-full p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs text-white focus:outline-none focus:border-indigo-500"
-              />
-              <span className="text-[11px] text-slate-400 block">
-                This explanation will be cryptographically chained to the SHA-256 audit ledger.
-              </span>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div className="flex items-center justify-end gap-2 p-4 border-t border-gray-200">
               <button
                 type="button"
                 onClick={() => setActiveModal(null)}
-                className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold"
+                className="px-4 py-2 rounded border border-gray-300 text-ink-muted text-xs font-medium hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
@@ -272,52 +263,57 @@ export const ClaimReviewDetailPage: React.FC = () => {
                 type="button"
                 disabled={processing}
                 onClick={() => handleExecuteTransition(activeModal)}
-                className="px-5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold shadow-md shadow-indigo-600/30"
+                className="px-4 py-2 rounded bg-navy-900 hover:bg-navy-800 text-white text-xs font-semibold disabled:opacity-50 transition-colors"
               >
-                {processing ? 'Recording to Ledger...' : 'Confirm & Commit Action'}
+                {processing ? 'Recording…' : 'Confirm & Commit'}
               </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Narrative & Amounts Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        
-        {/* Narrative & Evidence Column */}
-        <div className="md:col-span-2 space-y-6">
-          <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono">
+      {/* Content Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+
+        {/* Left: Narrative, Evidence, AI, Eligibility */}
+        <div className="lg:col-span-2 space-y-5">
+
+          {/* Narrative */}
+          <div className="bg-white rounded-lg border border-gray-200 p-5">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-ink-muted mb-3">
               Incident Narrative
             </h3>
-            <p className="text-xs text-slate-300 leading-relaxed bg-slate-950/60 p-4 rounded-xl border border-slate-800">
+            <p className="text-sm text-ink leading-relaxed bg-gray-50 p-4 rounded border border-gray-100">
               {claim.narrative}
             </p>
           </div>
 
+          {/* Evidence */}
           {evidence.length > 0 && (
-            <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-3">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-300 font-mono flex items-center gap-2">
-                <Paperclip className="w-4 h-4 text-indigo-400" />
-                Submitted Evidence Files ({evidence.length})
+            <div className="bg-white rounded-lg border border-gray-200 p-5">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-ink-muted mb-3 flex items-center gap-2">
+                <Paperclip className="w-4 h-4" />
+                Evidence ({evidence.length})
               </h3>
-              <div className="grid gap-2">
+              <div className="space-y-2">
                 {evidence.map((item) => (
                   <div
                     key={item.id}
-                    className="p-3 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-between text-xs"
+                    className="p-3 rounded border border-gray-100 bg-gray-50 flex items-center justify-between text-sm"
                   >
                     <div>
-                      <span className="font-semibold text-slate-200 block">{item.fileName}</span>
-                      <span className="text-slate-400 text-[11px]">{item.description}</span>
+                      <span className="font-medium text-ink">{item.fileName}</span>
+                      {item.description && (
+                        <span className="text-xs text-ink-muted block">{item.description}</span>
+                      )}
                     </div>
                     <a
                       href={item.fileUrl}
                       target="_blank"
                       rel="noreferrer"
-                      className="px-3 py-1 rounded bg-indigo-600/20 text-indigo-300 hover:bg-indigo-600/30 text-xs font-medium"
+                      className="px-3 py-1 rounded border border-gray-200 text-xs font-medium text-navy-700 hover:bg-gray-100 transition-colors"
                     >
-                      Inspect File
+                      View
                     </a>
                   </div>
                 ))}
@@ -325,63 +321,96 @@ export const ClaimReviewDetailPage: React.FC = () => {
             </div>
           )}
 
-          {/* AI Narrative Advisory Banner */}
+          {/* AI Advisory */}
           {aiExtraction && <AiAdvisoryBanner aiExtraction={aiExtraction} />}
 
-          {/* Deterministic Rules Engine */}
+          {/* Eligibility */}
           {eligibilityEvaluation && <EligibilityExplainer evaluation={eligibilityEvaluation} />}
         </div>
 
-        {/* Sidebar Info & Policy Parameters */}
-        <div className="space-y-6">
-          <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900/80 space-y-3 text-xs">
-            <h3 className="font-bold text-white font-mono uppercase tracking-wider text-[11px]">
-              Policy Parameters
+        {/* Right Sidebar: Policy + Audit */}
+        <div className="space-y-5">
+
+          {/* Claim Amounts */}
+          <div className="bg-white rounded-lg border border-gray-200 p-5">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-ink-muted mb-3">
+              Financial Summary
             </h3>
-            <div className="space-y-2 border-t border-slate-800 pt-2 text-slate-400">
+            <dl className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span>Coverage Limit:</span>
-                <strong className="text-slate-200 font-mono">${policy?.coverageLimit.toLocaleString()}</strong>
+                <dt className="text-ink-muted">Requested</dt>
+                <dd className="font-mono font-medium text-ink">₹{claim.requestedAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</dd>
               </div>
+              {claim.approvedAmount != null && (
+                <div className="flex justify-between">
+                  <dt className="text-ink-muted">Approved</dt>
+                  <dd className="font-mono font-medium text-accent-success">₹{claim.approvedAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</dd>
+                </div>
+              )}
               <div className="flex justify-between">
-                <span>Deductible:</span>
-                <strong className="text-slate-200 font-mono">${policy?.deductible.toLocaleString()}</strong>
+                <dt className="text-ink-muted">Category</dt>
+                <dd className="text-ink">{claim.category}</dd>
               </div>
-              <div className="flex justify-between">
-                <span>Filing Window:</span>
-                <strong className="text-slate-200 font-mono">{policy?.filingWindowDays} Days</strong>
-              </div>
-              <div className="flex justify-between">
-                <span>Incident Date:</span>
-                <strong className="text-slate-200 font-mono">{claim.incidentDate}</strong>
-              </div>
-              <div className="flex justify-between">
-                <span>Filing Date:</span>
-                <strong className="text-slate-200 font-mono">{claim.filingDate}</strong>
-              </div>
-            </div>
+            </dl>
           </div>
 
-          {/* Audit History Snapshot */}
-          <div className="p-5 rounded-2xl border border-slate-800 bg-slate-900/80 space-y-3 text-xs">
-            <h3 className="font-bold text-white font-mono uppercase tracking-wider text-[11px] flex items-center gap-1.5">
-              <Clock className="w-3.5 h-3.5 text-indigo-400" />
-              Claim Audit History ({auditLogs.length})
+          {/* Policy Parameters */}
+          {policy && (
+            <div className="bg-white rounded-lg border border-gray-200 p-5">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-ink-muted mb-3">
+                Policy Terms
+              </h3>
+              <dl className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <dt className="text-ink-muted">Coverage Limit</dt>
+                  <dd className="font-mono font-medium text-ink">₹{policy.coverageLimit.toLocaleString('en-IN')}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-ink-muted">Deductible</dt>
+                  <dd className="font-mono font-medium text-ink">₹{policy.deductible.toLocaleString('en-IN')}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-ink-muted">Filing Window</dt>
+                  <dd className="text-ink">{policy.filingWindowDays} days</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-ink-muted">Incident Date</dt>
+                  <dd className="font-mono text-ink">{claim.incidentDate}</dd>
+                </div>
+                <div className="flex justify-between">
+                  <dt className="text-ink-muted">Filing Date</dt>
+                  <dd className="font-mono text-ink">{claim.filingDate}</dd>
+                </div>
+              </dl>
+            </div>
+          )}
+
+          {/* Audit History */}
+          <div className="bg-white rounded-lg border border-gray-200 p-5">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-ink-muted mb-3 flex items-center gap-1.5">
+              <Clock className="w-3.5 h-3.5" />
+              Audit History ({auditLogs.length})
             </h3>
             <div className="space-y-2 max-h-72 overflow-y-auto">
               {auditLogs.map((log) => (
-                <div key={log.id} className="p-2.5 rounded-lg bg-slate-950 border border-slate-800/80 text-[11px]">
-                  <div className="flex items-center justify-between text-indigo-300 font-mono font-semibold">
-                    <span>{log.action}</span>
-                    <span className="text-[10px] text-slate-500">{new Date(log.timestamp).toLocaleTimeString()}</span>
+                <div key={log.id} className="p-3 rounded border border-gray-100 bg-gray-50 text-xs">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-mono font-medium text-navy-700">{log.action}</span>
+                    <span className="text-ink-faint">{new Date(log.timestamp).toLocaleString()}</span>
                   </div>
-                  <p className="text-slate-400 mt-1">{log.decisionReason}</p>
+                  <p className="text-ink-muted">{log.actorEmail} ({log.actorRole})</p>
+                  {log.decisionReason && (
+                    <p className="text-ink-muted mt-1 italic">{log.decisionReason}</p>
+                  )}
                 </div>
               ))}
+              {auditLogs.length === 0 && (
+                <p className="text-xs text-ink-muted py-2">No audit events recorded yet.</p>
+              )}
             </div>
           </div>
-        </div>
 
+        </div>
       </div>
 
     </div>

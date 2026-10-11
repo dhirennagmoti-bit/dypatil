@@ -53,49 +53,49 @@ export const AuditorPortalPage: React.FC = () => {
   const refusedCount = logs.filter((l) => l.action === 'ACTION_REFUSED').length;
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
       
       {/* Header Banner */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-2xl bg-gradient-to-r from-slate-900 via-emerald-950/20 to-slate-900 border border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-6 rounded-xl bg-white border border-[#DDE1E6] shadow-sm">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold text-white tracking-tight flex items-center gap-2">
-              <FileLock2 className="w-6 h-6 text-emerald-400" />
+            <h1 className="text-2xl font-bold text-[#183153] tracking-tight flex items-center gap-2">
+              <FileLock2 className="w-6 h-6 text-[#42658A]" />
               Cryptographic Audit & Compliance Ledger
             </h1>
-            <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+            <span className="px-2 py-0.5 rounded text-[11px] font-mono bg-emerald-50 text-emerald-700 border border-emerald-200 font-semibold">
               SHA-256 Chained
             </span>
           </div>
-          <p className="text-xs text-slate-400">
-            Official B-02 Requirement: Accepted decisions and refused actions are recorded in tamper-detectable history.
+          <p className="text-xs text-[#5C6470]">
+            Official Compliance & Verification: Accepted decisions and refused actions are recorded in tamper-detectable history.
           </p>
         </div>
 
         <div className="flex items-center gap-4 text-xs font-mono">
-          <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-right">
-            <span className="text-slate-500 block text-[10px]">Total Ledger Blocks</span>
-            <strong className="text-white text-base">{logs.length}</strong>
+          <div className="p-3 rounded-lg bg-[#F7F7F4] border border-[#DDE1E6] text-right">
+            <span className="text-[#5C6470] block text-[10px]">Total Ledger Blocks</span>
+            <strong className="text-[#183153] text-base">{logs.length}</strong>
           </div>
-          <div className="p-3 rounded-xl bg-slate-950 border border-slate-800 text-right">
-            <span className="text-slate-500 block text-[10px]">Refused Violations</span>
-            <strong className="text-rose-400 text-base">{refusedCount}</strong>
+          <div className="p-3 rounded-lg bg-rose-50 border border-rose-200 text-right">
+            <span className="text-rose-700 block text-[10px]">Refused Violations</span>
+            <strong className="text-rose-800 text-base">{refusedCount}</strong>
           </div>
         </div>
       </div>
 
       {/* Filters Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl bg-slate-900 border border-slate-800">
+      <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-xl bg-white border border-[#DDE1E6] shadow-sm">
         <div className="flex items-center gap-3">
           
           {/* Insurer Filter */}
-          <div className="flex items-center gap-2 text-xs text-slate-400">
-            <Building2 className="w-4 h-4 text-slate-500" />
+          <div className="flex items-center gap-2 text-xs text-[#5C6470]">
+            <Building2 className="w-4 h-4 text-[#42658A]" />
             <span>Insurer:</span>
             <select
               value={selectedInsurerId}
               onChange={(e) => setSelectedInsurerId(e.target.value)}
-              className="px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white"
+              className="px-2.5 py-1.5 rounded-lg bg-white border border-[#DDE1E6] text-xs text-[#252B33] focus:outline-none focus:border-[#183153]"
             >
               <option value="ALL">All Insurers (Cross-Platform)</option>
               {insurers.map((ins) => (
@@ -107,12 +107,12 @@ export const AuditorPortalPage: React.FC = () => {
           </div>
 
           {/* Action Filter */}
-          <div className="flex items-center gap-1.5 text-xs text-slate-400">
-            <Filter className="w-4 h-4 text-slate-500" />
+          <div className="flex items-center gap-1.5 text-xs text-[#5C6470]">
+            <Filter className="w-4 h-4 text-[#42658A]" />
             <select
               value={actionFilter}
               onChange={(e) => setActionFilter(e.target.value)}
-              className="px-2.5 py-1.5 rounded-lg bg-slate-950 border border-slate-800 text-xs text-white"
+              className="px-2.5 py-1.5 rounded-lg bg-white border border-[#DDE1E6] text-xs text-[#252B33] focus:outline-none focus:border-[#183153]"
             >
               <option value="ALL">All Event Types</option>
               <option value="REFUSED">⚠️ Refused Security Actions Only</option>
@@ -127,7 +127,7 @@ export const AuditorPortalPage: React.FC = () => {
 
         <button
           onClick={fetchLogs}
-          className="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1.5"
+          className="px-3 py-1.5 rounded-lg bg-[#183153] hover:bg-[#12243d] text-white text-xs font-medium flex items-center gap-1.5 transition-colors"
         >
           <RefreshCw className="w-3.5 h-3.5" />
           Refresh Ledger
@@ -136,7 +136,7 @@ export const AuditorPortalPage: React.FC = () => {
 
       {/* Hash Chain Visualizer Component */}
       {loading ? (
-        <div className="text-center py-16 text-slate-400 text-xs">Loading audit ledger...</div>
+        <div className="text-center py-16 text-[#5C6470] text-xs">Loading audit ledger...</div>
       ) : (
         <HashChainVisualizer logs={filteredLogs} onRefresh={fetchLogs} />
       )}
