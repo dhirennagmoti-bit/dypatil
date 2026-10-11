@@ -14,10 +14,16 @@ import {
   KeyRound,
   Sparkles,
 } from 'lucide-react';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 export const RegisterPage: React.FC = () => {
   const { register } = useAuth();
   const navigate = useNavigate();
+
+  usePageMeta({
+    title: 'Create Account | InsureChain Bharat',
+    description: 'Register as an Indian policyholder, claims officer, insurer administrator, or IRDAI auditor.',
+  });
 
   const [step, setStep] = useState<1 | 2>(1);
   const [fullName, setFullName] = useState('');

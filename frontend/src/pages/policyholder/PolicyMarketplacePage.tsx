@@ -21,10 +21,16 @@ import {
   Compass,
   Zap,
 } from 'lucide-react';
+import { usePageMeta } from '../../hooks/usePageMeta';
 
 export const PolicyMarketplacePage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+
+  usePageMeta({
+    title: 'Insurance Marketplace | Compare Health & Motor Plans',
+    description: 'Explore Indian health, motor, travel and commercial insurance plans with instant quotes and cashless hospital networks.',
+  });
 
   const [allPolicies, setAllPolicies] = useState<Policy[]>([]);
   const [loading, setLoading] = useState(true);

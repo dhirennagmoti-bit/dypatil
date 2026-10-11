@@ -2,14 +2,67 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🛡️</text></svg>" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>InsureChain — Transparent Multi-Insurer Claims & Cryptographic Audit Platform</title>
+
+    <!-- Favicon Set -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="alternate icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />
+    <meta name="theme-color" content="#003B73" />
+
+    <!-- Primary Meta Tags -->
+    <title>InsureChain Bharat — India's Multi-Insurer Claims & Cryptographic Audit Platform</title>
+    <meta name="title" content="InsureChain Bharat — India's Multi-Insurer Claims & Cryptographic Audit Platform" />
+    <meta name="description" content="Compare health and motor insurance plans, file cashless claims with instant deterministic eligibility, and verify tamper-proof SHA-256 audit trails under IRDAI guidelines." />
+    <meta name="keywords" content="health insurance india, cashless claims, irday sandbox, motor insurance, deterministic eligibility, sha-256 audit, insurechain" />
+    <meta name="author" content="InsureChain Bharat Technologies Ltd." />
+
+    <!-- Open Graph / Facebook / WhatsApp -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://insurechain.bharat/" />
+    <meta property="og:title" content="InsureChain Bharat — Multi-Insurer Claims & Policy Marketplace" />
+    <meta property="og:description" content="Fast cashless hospital claims, deterministic payout calculations, and verifiable SHA-256 cryptographic logs." />
+    <meta property="og:image" content="/og-image.jpg" />
+    <meta property="og:image:alt" content="Happy Indian family protected by InsureChain health coverage" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://insurechain.bharat/" />
+    <meta property="twitter:title" content="InsureChain Bharat — Multi-Insurer Claims & Policy Marketplace" />
+    <meta property="twitter:description" content="Fast cashless hospital claims, deterministic payout calculations, and verifiable SHA-256 cryptographic logs." />
+    <meta property="twitter:image" content="/og-image.jpg" />
+
+    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Privacy-Friendly Analytics Provider (Item 18) -->
+    <script>
+      window.insureAnalytics = {
+        track: function(eventName, props) {
+          try {
+            const payload = {
+              event: eventName,
+              timestamp: new Date().toISOString(),
+              path: window.location.pathname,
+              props: props || {}
+            };
+            if (window.console && window.console.info) {
+              window.console.info('[InsureAnalytics]', eventName, payload);
+            }
+          } catch(e) {}
+        },
+        page: function() {
+          this.track('pageview', { title: document.title, url: window.location.href });
+        }
+      };
+      window.addEventListener('DOMContentLoaded', function() {
+        window.insureAnalytics.page();
+      });
+    </script>
   </head>
-  <body class="bg-[#F8FAFC] text-[#1E293B] antialiased selection:bg-[#183153] selection:text-white">
+  <body class="bg-[#F8FAFC] text-[#1E293B] antialiased selection:bg-[#003B73] selection:text-white">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

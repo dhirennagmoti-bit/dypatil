@@ -2,10 +2,16 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Shield, Lock, Mail, ArrowRight, UserCheck, KeyRound, Check, Sparkles, UserPlus } from 'lucide-react';
+import { usePageMeta } from '../hooks/usePageMeta';
 
 export const LoginPage: React.FC = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+
+  usePageMeta({
+    title: 'Sign In | InsureChain Bharat',
+    description: 'Sign in to access your policies, submit claims, adjudicate queue, or audit SHA-256 logs.',
+  });
 
   const [email, setEmail] = useState('sarah.policyholder@example.com');
   const [password, setPassword] = useState('Password123!');

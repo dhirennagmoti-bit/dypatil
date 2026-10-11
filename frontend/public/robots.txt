@@ -1,0 +1,14 @@
+# robots.txt for InsureChain Bharat
+User-agent: *
+Allow: /
+Allow: /help
+Allow: /policyholder/marketplace
+Allow: /privacy
+Allow: /terms
+Allow: /thank-you
+
+# Disallow internal API calls and auth callback parameters
+Disallow: /api/
+Disallow: /admin/
+
+Sitemap: https://insurechain.bharat/sitemap.xml

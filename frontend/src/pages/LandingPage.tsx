@@ -1,6 +1,8 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
+import { usePageMeta } from '../hooks/usePageMeta';
 import {
   Shield,
   Scale,
@@ -13,19 +15,26 @@ import {
   Lock,
   CheckCircle2,
   ShieldCheck,
-  Cpu,
-  Layers,
   ChevronRight,
   Heart,
   Car,
   Plane,
   ShoppingBag,
   Zap,
+  Headphones,
+  Award,
 } from 'lucide-react';
 
 export const LandingPage: React.FC = () => {
   const { user, quickSwitch } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
+
+  usePageMeta({
+    title: "InsureChain Bharat — India's Multi-Insurer Claims & Cryptographic Audit Platform",
+    description: "Compare health, motor and SME insurance policies. Fast cashless claims with deterministic eligibility and immutable SHA-256 audit ledger.",
+    ogImage: '/assets/indian-family.jpg',
+  });
 
   const handleLaunchPersona = async (email: string, targetPath: string) => {
     await quickSwitch(email);
@@ -34,43 +43,43 @@ export const LandingPage: React.FC = () => {
 
   const categories = [
     {
-      title: 'Health Insurance',
-      sub: '₹5L - ₹1Cr Cover • 10,000+ Hospitals',
+      title: t('healthTitle'),
+      sub: t('healthSub'),
       tag: 'Save Tax 80D',
       icon: Heart,
       color: 'bg-emerald-50 text-emerald-600 border-emerald-200',
     },
     {
-      title: 'Car Insurance',
-      sub: 'Instant Zero-Dep • Cashless Garages',
+      title: t('carTitle'),
+      sub: t('carSub'),
       tag: 'Up to 50% Off',
       icon: Car,
       color: 'bg-blue-50 text-blue-600 border-blue-200',
     },
     {
-      title: '2-Wheeler (Bike)',
-      sub: 'Third-party & Own Damage Protection',
+      title: t('bikeTitle'),
+      sub: t('bikeSub'),
       tag: 'Starting ₹499/yr',
       icon: Zap,
       color: 'bg-orange-50 text-orange-600 border-orange-200',
     },
     {
-      title: 'Travel Insurance',
-      sub: 'Medical Emergencies & Flight Delays',
+      title: t('travelTitle'),
+      sub: t('travelSub'),
       tag: 'Worldwide',
       icon: Plane,
       color: 'bg-indigo-50 text-indigo-600 border-indigo-200',
     },
     {
-      title: 'Commercial Property',
-      sub: 'Shop, Warehouse & Fire Insurance',
+      title: t('propertyTitle'),
+      sub: t('propertySub'),
       tag: 'SME Protection',
       icon: Building2,
       color: 'bg-purple-50 text-purple-600 border-purple-200',
     },
     {
-      title: 'Smart AI Recommender',
-      sub: 'Find the best matched policy for you',
+      title: t('aiTitle'),
+      sub: t('aiSub'),
       tag: 'AI Powered',
       icon: Sparkles,
       color: 'bg-amber-50 text-amber-600 border-amber-200',
@@ -123,70 +132,109 @@ export const LandingPage: React.FC = () => {
   return (
     <div className="space-y-16 pb-20">
 
-      {/* Policybazaar-Style Vibrant Indian Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-[#003B73] via-[#00509D] to-[#002952] text-white pt-16 pb-24 border-b border-blue-900 shadow-lg">
-        <div className="absolute inset-0 bg-grid-dark opacity-30"></div>
+      {/* Hero Section with Hyperrealistic Indian Family Illustration & CTAs Above the Fold */}
+      <section className="relative overflow-hidden bg-gradient-to-r from-[#003B73] via-[#00509D] to-[#002952] text-white pt-12 pb-24 border-b border-blue-900 shadow-lg">
+        <div className="absolute inset-0 bg-grid-dark opacity-20 pointer-events-none"></div>
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="max-w-3xl space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-orange-400/40 bg-orange-500/20 text-orange-200 text-xs font-bold backdrop-blur-md">
-              <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse"></span>
-              IRDAI Sandbox • VORTEXA 3.0 Hackathon Problem B-02
+            {/* Left Content Column (7 cols) */}
+            <div className="lg:col-span-7 space-y-6">
+              
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-orange-400/40 bg-orange-500/20 text-orange-200 text-xs font-bold backdrop-blur-md">
+                <span className="w-2 h-2 rounded-full bg-orange-400 animate-pulse"></span>
+                {t('heroBadge')}
+              </div>
+
+              <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight leading-[1.15] text-white">
+                {t('heroTitle')}
+              </h1>
+
+              <p className="text-sm sm:text-base text-blue-100 leading-relaxed font-normal max-w-2xl">
+                {t('heroSubtitle')}
+              </p>
+
+              {/* CTAs Above the Fold */}
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                <Link
+                  to="/policyholder/marketplace"
+                  className="px-5 sm:px-6 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs sm:text-sm transition-all shadow-lg shadow-orange-500/30 flex items-center gap-2 active:scale-[0.98]"
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  <span>{t('ctaExplore')}</span>
+                </Link>
+
+                <Link
+                  to="/help"
+                  className="px-4 sm:px-5 py-3.5 rounded-xl border border-white/30 bg-white/10 hover:bg-white/20 text-white font-bold text-xs sm:text-sm transition-all backdrop-blur-md flex items-center gap-2 active:scale-[0.98]"
+                >
+                  <Headphones className="w-4 h-4 text-orange-300" />
+                  <span>{t('ctaTalkExpert')}</span>
+                </Link>
+
+                <Link
+                  to="/register"
+                  className="px-4 sm:px-5 py-3.5 rounded-xl bg-white hover:bg-slate-100 text-[#003B73] font-bold text-xs sm:text-sm transition-all shadow-md flex items-center gap-2 active:scale-[0.98]"
+                >
+                  <span>{t('ctaRegister')}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+
+              {/* Key Platform Stats Strip */}
+              <div className="pt-6 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-blue-800/80">
+                <div>
+                  <span className="block text-lg sm:text-2xl font-bold font-mono text-white">10,000+</span>
+                  <span className="text-[11px] sm:text-xs text-blue-200">{t('statHospitals')}</span>
+                </div>
+                <div>
+                  <span className="block text-lg sm:text-2xl font-bold font-mono text-orange-300">₹1.2 Crore</span>
+                  <span className="text-[11px] sm:text-xs text-blue-200">{t('statSettled')}</span>
+                </div>
+                <div>
+                  <span className="block text-lg sm:text-2xl font-bold font-mono text-emerald-300">98.6%</span>
+                  <span className="text-[11px] sm:text-xs text-blue-200">{t('statRatio')}</span>
+                </div>
+                <div>
+                  <span className="block text-lg sm:text-2xl font-bold font-mono text-teal-300">SHA-256</span>
+                  <span className="text-[11px] sm:text-xs text-blue-200">{t('statLedger')}</span>
+                </div>
+              </div>
+
             </div>
 
-            <h1 className="text-3xl sm:text-5xl font-extrabold tracking-tight leading-[1.15] text-white">
-              India’s Most Trusted Multi-Insurer Claims & Policy Marketplace
-            </h1>
+            {/* Right Column: Hyperrealistic Indian Family Photo with Protection Callouts (5 cols) */}
+            <div className="lg:col-span-5 relative">
+              <div className="relative rounded-3xl overflow-hidden shadow-2xl border-2 border-white/20 bg-slate-900 group">
+                <img
+                  src="/assets/indian-family.jpg"
+                  alt={t('familyAltText')}
+                  className="w-full h-[320px] sm:h-[400px] object-cover object-center group-hover:scale-105 transition-transform duration-700"
+                  loading="eager"
+                />
 
-            <p className="text-base sm:text-lg text-blue-100 leading-relaxed font-normal max-w-2xl">
-              Compare & buy health, motor, and commercial insurance plans with instant deterministic eligibility, 100% cashless network assistance, and cryptographic SHA-256 audit trails.
-            </p>
+                {/* Glassmorphic Trust Badges floating over image */}
+                <div className="absolute top-4 left-4 bg-[#003B73]/85 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/20 text-xs flex items-center gap-2 text-white shadow-lg">
+                  <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                  <span className="font-semibold text-[11px]">100% Cashless Pre-Auth</span>
+                </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-3 pt-2">
-              <Link
-                to="/policyholder/marketplace"
-                className="px-6 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-bold text-xs transition-all shadow-lg shadow-orange-500/30 flex items-center gap-2"
-              >
-                <ShoppingBag className="w-4 h-4" />
-                Explore & Compare Policies
-              </Link>
-
-              <Link
-                to="/register"
-                className="px-6 py-3.5 rounded-xl bg-white hover:bg-slate-100 text-[#003B73] font-bold text-xs transition-all shadow-md flex items-center gap-2"
-              >
-                Create Free Account
-                <ArrowRight className="w-4 h-4" />
-              </Link>
-
-              <button
-                onClick={() => handleLaunchPersona('compliance.auditor@example.com', '/auditor/portal')}
-                className="px-5 py-3.5 rounded-xl border border-blue-400/30 bg-blue-900/40 hover:bg-blue-800/50 text-blue-100 font-semibold text-xs transition-all backdrop-blur-md flex items-center gap-2"
-              >
-                <LinkIcon className="w-4 h-4 text-teal-400" />
-                Verify IRDAI Audit Ledger
-              </button>
-            </div>
-
-            {/* Quick KPI stats strip with Indian Rupee figures */}
-            <div className="pt-8 grid grid-cols-2 sm:grid-cols-4 gap-4 border-t border-blue-800/80">
-              <div>
-                <span className="block text-xl sm:text-2xl font-bold font-mono text-white">10,000+</span>
-                <span className="text-xs text-blue-200">Cashless Hospitals</span>
-              </div>
-              <div>
-                <span className="block text-xl sm:text-2xl font-bold font-mono text-orange-300">₹1.2 Crore</span>
-                <span className="text-xs text-blue-200">Settled Liability</span>
-              </div>
-              <div>
-                <span className="block text-xl sm:text-2xl font-bold font-mono text-emerald-300">98.6%</span>
-                <span className="text-xs text-blue-200">IRDAI Settlement Ratio</span>
-              </div>
-              <div>
-                <span className="block text-xl sm:text-2xl font-bold font-mono text-teal-300">SHA-256</span>
-                <span className="text-xs text-blue-200">Chained Hash Ledger</span>
+                <div className="absolute bottom-4 left-4 right-4 bg-white/95 backdrop-blur-md p-3.5 rounded-2xl border border-slate-200 text-[#0F172A] shadow-xl flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                      Family Health Guard
+                    </span>
+                    <h4 className="text-xs font-bold text-[#0F172A] mt-1">
+                      Protected under IRDAI Sandbox
+                    </h4>
+                    <p className="text-[10px] text-[#64748B]">Zero deductions on critical cashless claims</p>
+                  </div>
+                  <div className="text-right">
+                    <span className="text-sm font-extrabold text-[#003B73] font-mono block">₹10 Lakh</span>
+                    <span className="text-[9px] text-[#64748B]">Sum Insured</span>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -195,22 +243,22 @@ export const LandingPage: React.FC = () => {
       </section>
 
       {/* Policybazaar-Style Interactive Category Tiles */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-20 relative z-10">
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-16 relative z-10">
         <div className="bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-8 space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
             <div>
               <h2 className="text-lg font-bold text-[#0F172A] tracking-tight">
-                Compare and Buy Insurance Plans in India
+                {t('categoryHeader')}
               </h2>
               <p className="text-xs text-[#64748B]">
-                Instant quote comparison across Star Health, Apex Mutual, HDFC ERGO & Vortex Shield.
+                {t('categorySub')}
               </p>
             </div>
             <Link
               to="/policyholder/marketplace"
               className="text-xs font-bold text-blue-600 hover:text-blue-700 flex items-center gap-1 shrink-0"
             >
-              View All 15+ Plans <ChevronRight className="w-4 h-4" />
+              {t('viewAllPlans')} <ChevronRight className="w-4 h-4" />
             </Link>
           </div>
 
@@ -254,7 +302,7 @@ export const LandingPage: React.FC = () => {
               Live Interactive Walkthrough
             </span>
             <h2 className="text-xl sm:text-2xl font-bold text-[#0F172A] tracking-tight">
-              Test Any Stakeholder Role with Indian Demo Profiles
+              {t('personaHeader')}
             </h2>
           </div>
           <span className="text-xs font-mono font-semibold px-2.5 py-1 rounded bg-slate-100 text-[#475569]">
@@ -319,7 +367,6 @@ export const LandingPage: React.FC = () => {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          
           <div className="p-6 rounded-2xl bg-white border border-slate-200 shadow-card space-y-3">
             <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
               <Scale className="w-5 h-5" />
@@ -359,7 +406,6 @@ export const LandingPage: React.FC = () => {
               AI parses unstructured police narratives and flags inconsistencies, but the human claims supervisor retains absolute authority over approvals.
             </p>
           </div>
-
         </div>
       </section>
 
