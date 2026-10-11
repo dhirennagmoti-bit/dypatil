@@ -52,8 +52,23 @@
   - Sequential SHA-256 parent hash chaining linking each block to the previous entry's digital fingerprint.
   - Real-time cryptographic ledger verification via `GET /api/audit/verify-chain` with interactive UI verification button.
 
+### Help & Support Center + "Talk to Expert" Feature
+- [x] **Help & Support Page (`/help`)**:
+  - Live interactive "Talk to an Expert" suite:
+    - *Instant Callback Simulator*: Validates +91 Indian mobile number, assigns IRDAI Senior Surveyor (Vikramaditya Sen #SUR-84920), and provides unique reference token.
+    - *Schedule Consultation*: 1-on-1 video/audio slot booking with claims adjudicators.
+    - *Interactive AI Assistant*: Knowledge-grounded chatbot answering questions on deductibles, duplicate incident detection, filing windows, and cashless pre-authorization.
+    - *Support Ticket Generator*: Dispatches grievance tracking ticket directly to support queue.
+  - Dedicated Contact Card for official support email: `insureclaimsupport@gmail.com` with 1-click copy-to-clipboard and mailto launcher.
+  - 24x7 All-India Toll-Free Hotline: `1800-258-4433`.
+  - Multi-category expandable Knowledge Base & FAQ Accordion.
+- [x] **Global Navigation & Footer Integration**:
+  - Added "Help & Support" and "Talk to Expert" badge in `Navbar.tsx` (desktop & mobile drawer).
+  - Enhanced global footer in `App.tsx` with dedicated Help & Support column, quick links, toll-free number, and support email `insureclaimsupport@gmail.com`.
+  - Added authenticated safeguard in `PolicyMarketplacePage.tsx` so unauthenticated users are guided to sign in before enrolling.
+
 ### Verification Status
 - Backend `mvn test`: **PASSED** (10/10 tests passed with 0 errors across `AuditChainTest`, `DuplicateDetectionAndWorkflowTest`, and `EligibilityEngineTest`)
-- Frontend `npm run build`: **PASSED** (`tsc && vite build` built successfully with 0 errors in 9.51s)
+- Frontend `npm run build`: **PASSED** (`tsc && vite build` built successfully with 0 errors in 10.15s)
 - Frontend Dev Server: Running at `http://localhost:5173`
 - Spring Boot Backend: Running at `http://localhost:8080` (Connected to Supabase PostgreSQL, `status: ONLINE`)

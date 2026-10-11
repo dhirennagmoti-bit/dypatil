@@ -16,6 +16,8 @@ import {
   Sparkles,
   ShoppingBag,
   Zap,
+  HelpCircle,
+  PhoneCall,
 } from 'lucide-react';
 
 export const Navbar: React.FC = () => {
@@ -128,14 +130,29 @@ export const Navbar: React.FC = () => {
                   IRDAI Audit Ledger
                 </Link>
               )}
+
+              {/* Help & Support Nav Link */}
+              <Link to="/help" className={navLinkClass('/help')}>
+                <HelpCircle className="w-3.5 h-3.5 text-blue-600" />
+                Help & Support
+              </Link>
             </nav>
           </div>
 
           {/* Right Action Cluster */}
           <div className="flex items-center gap-2.5">
             
+            {/* Talk to Expert CTA Button */}
+            <Link
+              to="/help"
+              className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white text-xs font-bold shadow-xs transition-all active:scale-[0.98]"
+            >
+              <PhoneCall className="w-3.5 h-3.5" />
+              <span>Talk to Expert</span>
+            </Link>
+
             {/* Cashless Hospital Badge */}
-            <div className="hidden lg:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-semibold">
+            <div className="hidden xl:flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[11px] font-semibold">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
               10,000+ Cashless Hospitals
             </div>
@@ -239,6 +256,16 @@ export const Navbar: React.FC = () => {
               className="block px-3 py-2 text-xs font-bold text-orange-600 rounded hover:bg-slate-100"
             >
               🛍️ Buy Insurance (Marketplace)
+            </Link>
+            <Link
+              to="/help"
+              onClick={() => setShowMobileNav(false)}
+              className="block px-3 py-2 text-xs font-bold text-blue-600 rounded hover:bg-slate-100 flex items-center justify-between"
+            >
+              <span>🎧 Help & Support Center</span>
+              <span className="text-[10px] bg-orange-100 text-orange-700 px-1.5 py-0.5 rounded font-mono font-bold">
+                Talk to Expert
+              </span>
             </Link>
             {user && user.role === 'POLICYHOLDER' && (
               <>

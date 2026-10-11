@@ -54,6 +54,11 @@ export const PolicyMarketplacePage: React.FC = () => {
   }, []);
 
   const handleEnroll = async (policyId: string) => {
+    if (!user) {
+      alert('Please sign in or create an account to enroll in an insurance plan.');
+      navigate('/login');
+      return;
+    }
     setEnrollingId(policyId);
     try {
       await api.policies.enroll(policyId);
@@ -62,7 +67,7 @@ export const PolicyMarketplacePage: React.FC = () => {
         navigate('/policyholder/dashboard');
       }, 1500);
     } catch (err: any) {
-      alert('Enrollment error: ' + err.message);
+      alert('Enrollment error: ' + (err.message || 'Failed to enroll'));
     } finally {
       setEnrollingId(null);
     }
