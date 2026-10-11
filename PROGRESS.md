@@ -19,6 +19,7 @@
 | **Cryptographic Hash Chain Integrity** | Auditor Portal | **Verified complete** | SHA-256 chaining recomputes canonical event payload hashes. Detects broken links (`LINK_BROKEN`), payload tampering (`HASH_MISMATCH`), and sequence gaps (`SEQUENCE_GAP`). Tested in `AuditChainTest` (4/4 tests pass). |
 | **Complete Decision & Refusal Audit Ledger** | Auditor Portal | **Verified complete** | Chronological record of accepted transitions and refused attempts (`ACTION_REFUSED`) with filtering by actor, action, claim, outcome, insurer, and date. |
 | **Database Schema Migration (V3)** | Database | **Verified complete** | Applied `V3__add_workflow_lifecycle_columns.sql` to Supabase PostgreSQL: 14 lifecycle fields + `high_value_threshold`. |
+| **Database Schema Migration (V4)** | Database | **Verified complete** | Applied `V4__add_dummy_policies_and_covering_indexes.sql`: 10 foreign key covering indexes + 8 Indian market dummy policies + demo enrollments. |
 | **Role-Specific Frontend Architecture** | Frontend | **Verified complete** | Distinct portals and routes for `/officer/queue`, `/officer/claims/:id`, `/supervisor/queue`, `/supervisor/claims/:id`, `/insurer/admin`, and `/auditor/portal`. |
 
 ---
