@@ -1,0 +1,13 @@
+package com.insurechain.repository;
+
+import com.insurechain.model.EligibilityEvaluation;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+import java.util.UUID;
+
+@Repository
+public interface EligibilityEvaluationRepository extends JpaRepository<EligibilityEvaluation, UUID> {
+    Optional<EligibilityEvaluation> findByClaimId(UUID claimId);
+}
