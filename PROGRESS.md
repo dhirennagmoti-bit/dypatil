@@ -21,6 +21,7 @@
 | **Database Schema Migration (V3)** | Database | **Verified complete** | Applied `V3__add_workflow_lifecycle_columns.sql` to Supabase PostgreSQL: 14 lifecycle fields + `high_value_threshold`. |
 | **Database Schema Migration (V4)** | Database | **Verified complete** | Applied `V4__add_dummy_policies_and_covering_indexes.sql`: 10 foreign key covering indexes + 8 Indian market dummy policies + demo enrollments. |
 | **Role-Specific Frontend Architecture** | Frontend | **Verified complete** | Distinct portals and routes for `/officer/queue`, `/officer/claims/:id`, `/supervisor/queue`, `/supervisor/claims/:id`, `/insurer/admin`, and `/auditor/portal`. |
+| **Supabase PostgREST Live Data Client & RLS** | Integration / Frontend | **Verified complete** | Configured Row Level Security (RLS) `SELECT` policies for `anon` / `authenticated` roles on Supabase PostgreSQL (`itbfacafyicjznksidyh`). Implemented direct PostgREST fallback in `frontend/src/api/client.ts` enabling static Vercel deployments to fetch live policies, claims, insurers, and audit records with snake_case-to-camelCase mapping. |
 
 ---
 
