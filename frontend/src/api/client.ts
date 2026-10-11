@@ -43,7 +43,7 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
   });
 
   if (!response.ok) {
-    let errorMsg = `HTTP ${response.status}: ${response.statusText}`;
+    let errorMsg = response.statusText ? `HTTP ${response.status}: ${response.statusText}` : `HTTP ${response.status} Error`;
     try {
       const errorJson = await response.json();
       if (errorJson.message) {
@@ -51,7 +51,11 @@ async function request<T>(endpoint: string, options: RequestInit = {}): Promise<
       } else if (errorJson.error) {
         errorMsg = errorJson.error;
       }
-    } catch (_) {}
+    } catch (_) {
+      if (response.status === 405) {
+        errorMsg = 'HTTP 405 (Method Not Allowed): The API endpoint could not be reached. Ensure the Spring Boot backend is running on http://localhost:8080 (or VITE_API_URL is configured).';
+      }
+    }
     throw new Error(errorMsg);
   }
 
